@@ -10,7 +10,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Copy, ExternalLink, RefreshCw, CheckCircle, ChevronLeft, ChevronRight, Save } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ModeSwitcher from "@/components/mode-switcher/ModeSwitcher";
-import MusicPlayer from "@/components/MusicPlayer"; // Import the new component
+import MusicPlayer from "@/components/MusicPlayer";
+import MediaEditor from "@/components/MediaEditor";
+// Removed Button/Slider imports as we use native/inline for now to avoid errors
 
 export default function CampaignDashboard() {
   const [posts, setPosts] = useState<CampaignPost[]>([]);
@@ -18,6 +20,7 @@ export default function CampaignDashboard() {
   const [loading, setLoading] = useState(true);
   const [currentMode, setCurrentMode] = useState("ebeg"); // Default mode
   const [showMusic, setShowMusic] = useState(false); // State for Music Player
+  const [isEditingMedia, setIsEditingMedia] = useState(false); // State for Media Editor
 
   // EDIT STATE
   const [editedTitle, setEditedTitle] = useState("");
@@ -466,44 +469,66 @@ export default function CampaignDashboard() {
                   accept="image/*"
                 />
 
-                {editedImageUrl && editedImageUrl.length > 5 ? (
-                  <div
-                    className="bg-slate-100 rounded-lg border border-slate-200 overflow-hidden relative group focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                    tabIndex={0}
-                    onPaste={handlePaste}
-                    onCopy={handleCopyImage}
-                  >
-                    <div className="absolute top-2 right-2 z-10">
-                      <Badge variant={editedImageUrl.includes("localhost") ? "success" : "secondary"}>
-                        {editedImageUrl.includes("localhost") ? "Local File" : "Remote URL"}
-                      </Badge>
-                    </div>
-                    <img
-                      src={editedImageUrl}
-                      alt="Social Card"
-                      className="w-full h-auto max-h-[600px] object-contain bg-slate-50"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = 'none';
-                        (e.target as HTMLImageElement).parentElement?.classList.add('bg-red-50');
+                {isEditingMedia && editedImageUrl ? (
+                  <div className="h-[400px] bg-slate-100 rounded-lg border border-slate-200 p-2">
+                    <MediaEditor
+                      imageUrl={editedImageUrl}
+                      onCancel={() => setIsEditingMedia(false)}
+                      onSave={async (blob) => {
+                        try {
+                          await navigator.clipboard.write([
+                            new ClipboardItem({ "image/png": blob })
+                          ]);
+                          alert("Image copied to clipboard! Ready to paste.");
+                          setIsEditingMedia(false);
+                        } catch (err) {
+                          console.error("Copy failed", err);
+                          alert("Failed to copy image.");
+                        }
                       }}
                     />
-                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity gap-2">
-                      <Button variant="secondary" size="sm" onClick={() => fileInputRef.current?.click()}>Change Image</Button>
-                      <Button variant="destructive" size="sm" onClick={() => setEditedImageUrl("")}>Remove</Button>
-                    </div>
                   </div>
                 ) : (
-                  <div
-                    className="aspect-video bg-slate-100 rounded-lg border-2 border-dashed border-slate-300 flex items-center justify-center text-slate-400 cursor-pointer hover:bg-slate-200 hover:border-slate-400 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    tabIndex={0}
-                    onPaste={handlePaste}
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    <div className="text-center pointer-events-none">
-                      <div className="mb-2 text-2xl">🖼️</div>
-                      <span className="text-sm font-medium">Click to Browse or Paste (Ctrl+V)</span>
+                  editedImageUrl && editedImageUrl.length > 5 ? (
+                    <div
+                      className="bg-slate-100 rounded-lg border border-slate-200 overflow-hidden relative group focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      tabIndex={0}
+                      onPaste={handlePaste}
+                      onCopy={handleCopyImage}
+                    >
+                      <div className="absolute top-2 right-2 z-10">
+                        <Badge variant={editedImageUrl.includes("localhost") ? "success" : "secondary"}>
+                          {editedImageUrl.includes("localhost") ? "Local File" : "Remote URL"}
+                        </Badge>
+                      </div>
+                      <img
+                        src={editedImageUrl}
+                        alt="Social Card"
+                        className="w-full h-auto max-h-[600px] object-contain bg-slate-50"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = 'none';
+                          (e.target as HTMLImageElement).parentElement?.classList.add('bg-red-50');
+                        }}
+                      />
+                      <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity gap-2">
+                        <Button variant="secondary" size="sm" onClick={() => setIsEditingMedia(true)}>✨ Edit / Overlay</Button>
+                        <Button variant="secondary" size="sm" onClick={() => fileInputRef.current?.click()}>Change</Button>
+                        <Button variant="destructive" size="sm" onClick={() => setEditedImageUrl("")}>Remove</Button>
+                      </div>
                     </div>
-                  </div>
+                  ) : (
+                    <div
+                      className="aspect-video bg-slate-100 rounded-lg border-2 border-dashed border-slate-300 flex items-center justify-center text-slate-400 cursor-pointer hover:bg-slate-200 hover:border-slate-400 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      tabIndex={0}
+                      onPaste={handlePaste}
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <div className="text-center pointer-events-none">
+                        <div className="mb-2 text-2xl">🖼️</div>
+                        <span className="text-sm font-medium">Click to Browse or Paste (Ctrl+V)</span>
+                      </div>
+                    </div>
+                  )
                 )}
 
                 {/* Image URL Input */}
