@@ -1,5 +1,5 @@
 from typing import List, Optional, Dict, Any
-from sqlmodel import Field, SQLModel, JSON, Column
+from sqlmodel import Field, SQLModel, JSON, Column, Relationship
 from datetime import datetime
 
 class CampaignPost(SQLModel, table=True):
@@ -33,6 +33,23 @@ class CampaignPost(SQLModel, table=True):
     image_prompt: Optional[str] = ""
     video_prompt: Optional[str] = ""
 
+    # Relationships
+    campaign_id: Optional[int] = Field(default=None, foreign_key="campaign.id")
+    campaign: Optional["Campaign"] = Relationship(back_populates="posts")
+
+class Campaign(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    name: str
+    description: Optional[str] = ""
+    status: str = Field(default="Active") # Active, Archived, Completed
+    
+    # Relationship to Mode
+    mode_id: Optional[int] = Field(default=None, foreign_key="mode.id")
+    mode: Optional["Mode"] = Relationship(back_populates="campaigns")
+    
+    # Relationship to Posts
+    posts: List["CampaignPost"] = Relationship(back_populates="campaign")
+
 class Platform(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     name: str
@@ -51,7 +68,6 @@ class WorkspaceSettings(SQLModel, table=True):
     default_overlay_text: str = Field(default="AppleSux")
     default_qr_url: str = Field(default="https://fkxx.substack.com")
     default_music_url: str = Field(default="https://www.youtube.com/embed/jfKfPfyJRdk?autoplay=1")
-
 
 
 class User(SQLModel, table=True):
@@ -81,3 +97,6 @@ class Mode(SQLModel, table=True):
     # Metadata
     is_active: bool = Field(default=True)
     created_at: datetime = Field(default_factory=datetime.utcnow)
+
+    # Relationships
+    campaigns: List["Campaign"] = Relationship(back_populates="mode")

@@ -3,20 +3,21 @@
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
-import { CampaignPost } from "@/types/schema";
+import { CampaignPost, Campaign } from "@/types/schema";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Copy, ExternalLink, RefreshCw, CheckCircle, ChevronLeft, ChevronRight, Save, Settings, Image as ImageIcon, Music, Layout, Type, Share2, Upload, X } from "lucide-react";
+import { Copy, ExternalLink, RefreshCw, CheckCircle, ChevronLeft, ChevronRight, Save, Settings, Image as ImageIcon, Music, Layout, Type, Share2, Upload, X, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ModeSwitcher from "@/components/mode-switcher/ModeSwitcher";
 import MusicPlayer from "@/components/MusicPlayer";
 import MediaEditor from "@/components/MediaEditor";
 import SettingsModal from "@/components/settings/SettingsModal";
 import AITextOptimizer from "@/components/AITextOptimizer";
+import CreateCampaignModal from "@/components/campaign/CreateCampaignModal";
 // Removed Button/Slider imports as we use native/inline for now to avoid errors
 
 export default function CampaignDashboard() {
@@ -36,7 +37,10 @@ export default function CampaignDashboard() {
   const [currentMode, setCurrentMode] = useState("ebeg"); // Default mode
   const [showMusic, setShowMusic] = useState(false); // State for Music Player
   const [showSettings, setShowSettings] = useState(false); // State for Settings
+  const [showCreateCampaign, setShowCreateCampaign] = useState(false); // State for Create Campaign Modal
   const [isEditingMedia, setIsEditingMedia] = useState(false); // State for Media Editor
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [selectedCampaignId, setSelectedCampaignId] = useState<number | null>(null);
   const [activePlatforms, setActivePlatforms] = useState<any[]>([]);
 
   // FETCH PLATFORMS
@@ -62,23 +66,88 @@ export default function CampaignDashboard() {
 
   // FETCH DATA FROM BACKEND
   useEffect(() => {
-    async function fetchPosts() {
+    async function fetchData() {
       setPostsLoading(true);
       try {
+        // 1. Fetch Campaigns for this Mode
+        const campRes = await fetch(`http://localhost:8001/api/campaigns?mode_slug=${currentMode}`);
+        if (campRes.ok) {
+          const campData = await campRes.json();
+          setCampaigns(campData);
+
+          // Auto-select first campaign if none selected or invalid
+          if (campData.length > 0) {
+            setSelectedCampaignId(campData[0].id);
+          } else {
+            setSelectedCampaignId(null);
+          }
+        } else {
+          console.error("Failed to fetch campaigns");
+          setCampaigns([]);
+          setSelectedCampaignId(null);
+        }
+
+        // 2. Fetch All Posts for this Mode (we will filter client-side for now for speed)
         const res = await fetch(`http://localhost:8001/api/posts?mode=${currentMode}`);
-        const data = await res.json();
-        setPosts(data);
-        setCurrentIndex(0); // Reset index on mode change
+        if (res.ok) {
+          const data = await res.json();
+          setPosts(data);
+        } else {
+          setPosts([]);
+        }
+
+        setCurrentIndex(0);
         setPostsLoading(false);
       } catch (error) {
-        console.error("Failed to fetch posts:", error);
+        console.error("Failed to fetch data:", error);
         setPostsLoading(false);
       }
     }
-    fetchPosts();
-  }, [currentMode]); // Re-fetch when mode changes
+    fetchData();
+  }, [currentMode]);
 
-  const post = posts[currentIndex];
+  // Filter Posts by Selected Campaign
+  const filteredPosts = posts.filter(p => selectedCampaignId ? p.campaign_id === selectedCampaignId : true);
+  const post = filteredPosts[currentIndex];
+
+  // CREATE NEW CAMPAIGN
+  const handleCreateCampaign = async (name: string) => {
+    try {
+      // We need the mode_id, but we only have slug. 
+      // Ideally backend handles this lookup, but for now we can rely on the backend route we made?
+      // Actually, our backend route `create_campaign` expects a full Campaign object.
+      // Let's fetch the mode object first or just send the ID if we had it.
+      // Quick hack: We will fetch modes to find the ID.
+      const modeRes = await fetch("http://localhost:8001/api/modes");
+      const modes = await modeRes.json();
+      const modeObj = modes.find((m: any) => m.slug === currentMode);
+
+      if (!modeObj) {
+        alert("Error: Could not find mode ID");
+        return;
+      }
+
+      const res = await fetch("http://localhost:8001/api/campaigns", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: name,
+          mode_id: modeObj.id,
+          status: "Active"
+        })
+      });
+
+      if (res.ok) {
+        const newCamp = await res.json();
+        setCampaigns([...campaigns, newCamp]);
+        setSelectedCampaignId(newCamp.id);
+        // alert(`Campaign "${name}" created!`); // Modal closes automatically, no need for alert
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Failed to create campaign");
+    }
+  };
 
   // SYNC EDIT STATE WHEN POST CHANGES
   useEffect(() => {
@@ -98,7 +167,8 @@ export default function CampaignDashboard() {
         title: editedTitle,
         hook_text: editedHook,
         media_image_url: editedImageUrl,
-        mode: currentMode // Ensure mode is saved
+        mode: currentMode, // Ensure mode is saved
+        campaign_id: selectedCampaignId // Ensure it's linked to current campaign
       };
 
       let res;
@@ -232,8 +302,8 @@ export default function CampaignDashboard() {
     window.open(url, "_blank");
   };
 
-  const nextPost = () => setCurrentIndex((prev) => (prev + 1) % posts.length);
-  const prevPost = () => setCurrentIndex((prev) => (prev - 1 + posts.length) % posts.length);
+  const nextPost = () => setCurrentIndex((prev) => (prev + 1) % filteredPosts.length);
+  const prevPost = () => setCurrentIndex((prev) => (prev - 1 + filteredPosts.length) % filteredPosts.length);
 
   const handleCopyImage = async (e: React.ClipboardEvent) => {
     if (!editedImageUrl) return;
@@ -303,7 +373,8 @@ export default function CampaignDashboard() {
                     hook_text: "Write your hook here...",
                     status: "Pending",
                     mode: currentMode, // Important: Tag it with current mode
-                    category_primary: "General"
+                    category_primary: "General",
+                    campaign_id: selectedCampaignId
                   };
                   // Optimistic UI update
                   setPosts([newPost as any]);
@@ -311,7 +382,7 @@ export default function CampaignDashboard() {
                 }}
                 className="bg-blue-600 hover:bg-blue-700 text-white"
               >
-                + Create First {currentMode} Post
+                + Create First {currentMode} Posting
               </Button>
             </div>
           </div>
@@ -335,7 +406,7 @@ export default function CampaignDashboard() {
           {/* 2. Campaign Control Panel */}
           <Card className="shadow-sm border-slate-200">
             <CardHeader className="pb-3">
-              <CardTitle className="text-lg font-bold text-slate-800">Campaign Control</CardTitle>
+              <CardTitle className="text-lg font-bold text-slate-800">Campaign Manager</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
 
@@ -345,13 +416,37 @@ export default function CampaignDashboard() {
                 <p className="text-xs text-slate-500">Connected to Supabase (Postgres)</p>
               </div>
 
+              {/* Campaign Selector */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Active Campaign</label>
+                <div className="flex gap-2">
+                  <select
+                    className="flex-1 text-sm border-slate-300 rounded-md p-2 bg-white"
+                    value={selectedCampaignId || ""}
+                    onChange={(e) => {
+                      const val = Number(e.target.value);
+                      setSelectedCampaignId(val);
+                      setCurrentIndex(0);
+                    }}
+                  >
+                    {campaigns.map(c => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
+                    {campaigns.length === 0 && <option value="">No Campaigns</option>}
+                  </select>
+                  <Button size="icon" variant="outline" onClick={() => setShowCreateCampaign(true)} title="New Campaign">
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+
               {/* Navigation Controls */}
               <div className="flex items-center justify-between gap-2">
                 <Button variant="outline" onClick={prevPost} className="flex-1">
                   <ChevronLeft className="w-4 h-4 mr-1" /> Prev
                 </Button>
                 <span className="text-sm font-mono font-bold text-slate-700 min-w-[60px] text-center bg-white border border-slate-200 py-2 rounded-md">
-                  {currentIndex + 1} / {posts.length}
+                  {filteredPosts.length > 0 ? currentIndex + 1 : 0} / {filteredPosts.length}
                 </span>
                 <Button variant="outline" onClick={nextPost} className="flex-1">
                   Next <ChevronRight className="w-4 h-4 ml-1" />
@@ -423,7 +518,8 @@ export default function CampaignDashboard() {
                           title: editedTitle,
                           hook_text: editedHook,
                           media_image_url: editedImageUrl,
-                          mode: currentMode
+                          mode: currentMode,
+                          campaign_id: selectedCampaignId
                         };
                         const res = await fetch(`http://localhost:8001/api/posts/${post.id}`, {
                           method: "PUT",
@@ -455,12 +551,12 @@ export default function CampaignDashboard() {
 
               {/* Title Input */}
               <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Campaign Title</label>
+                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Posting Title</label>
                 <Input
                   value={editedTitle}
                   onChange={(e) => setEditedTitle(e.target.value)}
                   className="font-semibold text-lg border-slate-300 focus:border-blue-500 focus:ring-blue-500"
-                  placeholder="Enter campaign title..."
+                  placeholder="Enter posting title..."
                 />
               </div>
 
@@ -696,6 +792,13 @@ export default function CampaignDashboard() {
 
       {/* Settings Modal */}
       <SettingsModal open={showSettings} onOpenChange={setShowSettings} />
+
+      {/* Create Campaign Modal */}
+      <CreateCampaignModal
+        open={showCreateCampaign}
+        onOpenChange={setShowCreateCampaign}
+        onCreate={handleCreateCampaign}
+      />
     </div>
   );
 }

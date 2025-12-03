@@ -195,6 +195,32 @@ def update_platform(platform_id: int, platform_data: Platform, session: Session 
 def read_modes(session: Session = Depends(get_session)):
     return session.exec(select(Mode)).all()
 
+@app.post("/api/modes", response_model=Mode)
+def create_mode(mode: Mode, session: Session = Depends(get_session)):
+    session.add(mode)
+    session.commit()
+    session.refresh(mode)
+    return mode
+
+# --- CAMPAIGN ROUTES ---
+
+from .models import Campaign
+
+@app.get("/api/campaigns", response_model=List[Campaign])
+def read_campaigns(mode_slug: str = None, session: Session = Depends(get_session)):
+    query = select(Campaign)
+    if mode_slug:
+        # Join with Mode to filter by slug
+        query = query.join(Mode).where(Mode.slug == mode_slug)
+    return session.exec(query).all()
+
+@app.post("/api/campaigns", response_model=Campaign)
+def create_campaign(campaign: Campaign, session: Session = Depends(get_session)):
+    session.add(campaign)
+    session.commit()
+    session.refresh(campaign)
+    return campaign
+
 # ... (Existing Upload Routes) ...
 
 @app.get("/api/posts", response_model=List[CampaignPost])
@@ -214,6 +240,23 @@ def read_post(post_id: int, session: Session = Depends(get_session)):
 
 @app.post("/api/posts", response_model=CampaignPost)
 def create_post(post: CampaignPost, session: Session = Depends(get_session)):
+    # Auto-link to Campaign if missing
+    if not post.campaign_id:
+        # 1. Find Mode
+        mode_slug = post.mode or "ebeg"
+        mode = session.exec(select(Mode).where(Mode.slug == mode_slug)).first()
+        if mode:
+            # 2. Find/Create Campaign
+            campaign_name = post.category_primary or "General"
+            campaign = session.exec(select(Campaign).where(Campaign.name == campaign_name)).first()
+            if not campaign:
+                campaign = Campaign(name=campaign_name, mode_id=mode.id)
+                session.add(campaign)
+                session.commit()
+                session.refresh(campaign)
+            
+            post.campaign_id = campaign.id
+            
     session.add(post)
     session.commit()
     session.refresh(post)

@@ -28,8 +28,22 @@ export const CampaignPostSchema = z.object({
     // AI Prompts
     image_prompt: z.string().optional(),
     video_prompt: z.string().optional(),
+
+    // Relationships
+    campaign_id: z.number().optional(),
+    mode: z.string().optional(),
 });
 
 // 2. Export the Type derived from the Schema
 // This replaces the manual interface definition.
 export type CampaignPost = z.infer<typeof CampaignPostSchema>;
+
+export const CampaignSchema = z.object({
+    id: z.number().optional(),
+    name: z.string(),
+    description: z.string().optional(),
+    status: z.string().optional(),
+    mode_id: z.number().optional(),
+});
+
+export type Campaign = z.infer<typeof CampaignSchema>;
