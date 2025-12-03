@@ -1,12 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
 } from "@/components/ui/select";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -44,9 +44,8 @@ const MODE_SCHEMA = {
   }
 };
 
-export default function ModeSwitcher() {
-  const [activeMode, setActiveMode] = useState("content");
-  const currentConfig = MODE_SCHEMA[activeMode as keyof typeof MODE_SCHEMA];
+export default function ModeSwitcher({ currentMode, onModeChange }: { currentMode: string, onModeChange: (mode: string) => void }) {
+  const currentConfig = MODE_SCHEMA[currentMode as keyof typeof MODE_SCHEMA];
 
   return (
     <div className="w-full space-y-6">
@@ -57,49 +56,49 @@ export default function ModeSwitcher() {
           <p className="text-sm text-gray-500">Select the operational personality for this workspace.</p>
         </div>
         <div className="w-[250px]">
-            {/* Native Select for simplicity in prototype, can upgrade to Shadcn Select later */}
-            <select 
-                className="w-full p-2 border rounded-md"
-                value={activeMode}
-                onChange={(e) => setActiveMode(e.target.value)}
-            >
-                {Object.entries(MODE_SCHEMA).map(([key, config]) => (
-                    <option key={key} value={key}>
-                        {config.name}
-                    </option>
-                ))}
-            </select>
+          {/* Native Select for simplicity in prototype, can upgrade to Shadcn Select later */}
+          <select
+            className="w-full p-2 border rounded-md"
+            value={currentMode}
+            onChange={(e) => onModeChange(e.target.value)}
+          >
+            {Object.entries(MODE_SCHEMA).map(([key, config]) => (
+              <option key={key} value={key}>
+                {config.name}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 
       {/* 2. The Dynamic UI Preview */}
       <Card className={`border-t-4 ${currentConfig.theme.replace("bg-", "border-")}`}>
         <CardHeader>
-            <div className="flex justify-between items-center">
-                <CardTitle>New Campaign: {currentConfig.name}</CardTitle>
-                <Badge className={currentConfig.badge}>{activeMode.toUpperCase()}</Badge>
-            </div>
-            <p className="text-gray-500">{currentConfig.description}</p>
+          <div className="flex justify-between items-center">
+            <CardTitle>New Campaign: {currentConfig.name}</CardTitle>
+            <Badge className={currentConfig.badge}>{currentMode.toUpperCase()}</Badge>
+          </div>
+          <p className="text-gray-500">{currentConfig.description}</p>
         </CardHeader>
         <CardContent>
-            <div className="space-y-4">
-                {/* Dynamic Fields based on Mode */}
-                {currentConfig.fields.map((field) => (
-                    <div key={field} className="space-y-2">
-                        <label className="text-sm font-medium">{field}</label>
-                        <input 
-                            type="text" 
-                            className="w-full p-2 border rounded-md bg-gray-50" 
-                            placeholder={`Enter ${field}...`}
-                        />
-                    </div>
-                ))}
-                
-                {/* Dynamic Button */}
-                <button className={`w-full py-2 text-white font-bold rounded-md ${currentConfig.theme}`}>
-                    Generate {currentConfig.name.split(" ")[0]} Campaign
-                </button>
-            </div>
+          <div className="space-y-4">
+            {/* Dynamic Fields based on Mode */}
+            {currentConfig.fields.map((field) => (
+              <div key={field} className="space-y-2">
+                <label className="text-sm font-medium">{field}</label>
+                <input
+                  type="text"
+                  className="w-full p-2 border rounded-md bg-gray-50"
+                  placeholder={`Enter ${field}...`}
+                />
+              </div>
+            ))}
+
+            {/* Dynamic Button */}
+            <button className={`w-full py-2 text-white font-bold rounded-md ${currentConfig.theme}`}>
+              Generate {currentConfig.name.split(" ")[0]} Campaign
+            </button>
+          </div>
         </CardContent>
       </Card>
     </div>

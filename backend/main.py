@@ -26,8 +26,11 @@ def read_root():
     return {"message": "Campaign Poster API v2.0 is Live"}
 
 @app.get("/api/posts", response_model=List[CampaignPost])
-def read_posts(session: Session = Depends(get_session)):
-    posts = session.exec(select(CampaignPost)).all()
+def read_posts(mode: str = None, session: Session = Depends(get_session)):
+    query = select(CampaignPost)
+    if mode:
+        query = query.where(CampaignPost.mode == mode)
+    posts = session.exec(query).all()
     return posts
 
 @app.get("/api/posts/{post_id}", response_model=CampaignPost)

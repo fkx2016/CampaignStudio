@@ -1,10 +1,20 @@
+import os
 from sqlmodel import SQLModel, create_engine, Session
+from dotenv import load_dotenv
 
-sqlite_file_name = "database.db"
-sqlite_url = f"sqlite:///{sqlite_file_name}"
+# Load environment variables from .env file
+load_dotenv()
 
-connect_args = {"check_same_thread": False}
-engine = create_engine(sqlite_url, echo=True, connect_args=connect_args)
+# Get DB URL from env, or default to SQLite for local dev fallback
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///database.db")
+
+# Check if we are using SQLite (for connect_args)
+if "sqlite" in DATABASE_URL:
+    connect_args = {"check_same_thread": False}
+    engine = create_engine(DATABASE_URL, echo=True, connect_args=connect_args)
+else:
+    # PostgreSQL (Supabase) doesn't need check_same_thread
+    engine = create_engine(DATABASE_URL, echo=True)
 
 def create_db_and_tables():
     SQLModel.metadata.create_all(engine)

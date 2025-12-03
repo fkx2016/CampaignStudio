@@ -15,6 +15,7 @@ export default function CampaignDashboard() {
   const [posts, setPosts] = useState<CampaignPost[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [currentMode, setCurrentMode] = useState("ebeg"); // Default mode
 
   // EDIT STATE
   const [editedTitle, setEditedTitle] = useState("");
@@ -25,10 +26,12 @@ export default function CampaignDashboard() {
   // FETCH DATA FROM BACKEND
   useEffect(() => {
     async function fetchPosts() {
+      setLoading(true);
       try {
-        const res = await fetch("http://localhost:8001/api/posts");
+        const res = await fetch(`http://localhost:8001/api/posts?mode=${currentMode}`);
         const data = await res.json();
         setPosts(data);
+        setCurrentIndex(0); // Reset index on mode change
         setLoading(false);
       } catch (error) {
         console.error("Failed to fetch posts:", error);
@@ -36,7 +39,7 @@ export default function CampaignDashboard() {
       }
     }
     fetchPosts();
-  }, []);
+  }, [currentMode]); // Re-fetch when mode changes
 
   const post = posts[currentIndex];
 
@@ -57,19 +60,32 @@ export default function CampaignDashboard() {
         ...post,
         title: editedTitle,
         hook_text: editedHook,
-        media_image_url: editedImageUrl
+        media_image_url: editedImageUrl,
+        mode: currentMode // Ensure mode is saved
       };
 
-      const res = await fetch(`http://localhost:8001/api/posts/${post.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updatedPost),
-      });
+      let res;
+      if (post.id) {
+        // UPDATE existing post
+        res = await fetch(`http://localhost:8001/api/posts/${post.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(updatedPost),
+        });
+      } else {
+        // CREATE new post
+        res = await fetch(`http://localhost:8001/api/posts`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(updatedPost),
+        });
+      }
 
       if (res.ok) {
+        const savedData = await res.json();
         // Update local state
         const newPosts = [...posts];
-        newPosts[currentIndex] = updatedPost;
+        newPosts[currentIndex] = savedData;
         setPosts(newPosts);
         alert("Saved successfully!");
       } else {
@@ -177,7 +193,53 @@ export default function CampaignDashboard() {
   };
 
   if (loading) return <div className="p-10 text-center">Loading Campaign Data...</div>;
-  if (!post) return <div className="p-10 text-center">No posts found.</div>;
+
+  // EMPTY STATE (When no posts exist for this mode)
+  if (!post) {
+    return (
+      <div className="min-h-screen bg-slate-50 p-8 font-sans text-slate-900">
+        <div className="max-w-6xl mx-auto space-y-6">
+          {/* Mode Switcher is ALWAYS visible so user can backtrack */}
+          <ModeSwitcher currentMode={currentMode} onModeChange={setCurrentMode} />
+
+          <div className="flex flex-col items-center justify-center p-12 border-2 border-dashed border-slate-300 rounded-lg bg-slate-100/50 text-center">
+            <div className="text-4xl mb-4">📭</div>
+            <h3 className="text-xl font-bold text-slate-700">No Campaigns Found</h3>
+            <p className="text-slate-500 mb-6 max-w-md">
+              There are no posts for <strong>{currentMode.toUpperCase()}</strong> mode yet.
+              Start a new campaign or switch back to another mode.
+            </p>
+            <div className="flex gap-4">
+              <Button
+                onClick={() => setCurrentMode("ebeg")}
+                variant="outline"
+              >
+                ← Back to E-Beg
+              </Button>
+              <Button
+                onClick={() => {
+                  // Create a placeholder post for this mode
+                  const newPost = {
+                    title: "New Campaign",
+                    hook_text: "Write your hook here...",
+                    status: "Pending",
+                    mode: currentMode, // Important: Tag it with current mode
+                    category_primary: "General"
+                  };
+                  // Optimistic UI update
+                  setPosts([newPost as any]);
+                  setCurrentIndex(0);
+                }}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                + Create First {currentMode} Post
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 p-8 font-sans text-slate-900">
@@ -189,7 +251,7 @@ export default function CampaignDashboard() {
         <div className="lg:col-span-7 space-y-6">
 
           {/* MODE SWITCHER (New) */}
-          <ModeSwitcher />
+          <ModeSwitcher currentMode={currentMode} onModeChange={setCurrentMode} />
 
           {/* Header */}
           <div className="flex items-center justify-between">

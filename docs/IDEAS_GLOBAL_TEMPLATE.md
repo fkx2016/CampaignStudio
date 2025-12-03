@@ -33,6 +33,15 @@ These are intended to be part of our "Base SaaS Template" for all future project
     *   *Why:* Copy-paste components, accessible, customizable.
     *   *Rule:* Always install components via CLI (`npx shadcn@latest add [component]`) instead of mocking them.
 
+### 7. Sovereign AI Infrastructure (The "Brain in a Box")
+*   **Core Philosophy:** The SaaS should be able to run its own intelligence without relying solely on OpenAI/Anthropic APIs.
+*   **Components:**
+    *   **Docker:** The universal container runtime for all services (DB, App, AI).
+    *   **Ollama:** The local LLM runner (for zero-cost inference).
+    *   **Docker Model Runner:** A standardized container for executing AI models.
+    *   **MCP (Model Context Protocol):** The standard for connecting LLMs to local data/tools.
+*   **Goal:** Enable "Air-Gapped" or "Private Cloud" deployments for enterprise clients.
+
 ### 4. Infrastructure
 *   [ ] **Docker Compose:** A standard `docker-compose.yml` for local dev.
 *   [ ] **CI/CD Pipeline:** A GitHub Actions workflow for auto-deploying to Vercel/Railway.

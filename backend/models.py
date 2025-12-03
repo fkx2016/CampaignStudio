@@ -10,6 +10,7 @@ class CampaignPost(SQLModel, table=True):
     category_secondary: Optional[str] = ""
     category_tertiary: Optional[str] = ""
     status: str = Field(default="Pending") # Pending, Posted
+    mode: str = Field(default="ebeg") # ebeg, content, promotion, political
     posted_date: Optional[str] = ""
     
     # Media & Content

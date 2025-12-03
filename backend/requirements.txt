@@ -2,3 +2,6 @@ fastapi
 uvicorn[standard]
 sqlmodel
 python-multipart
+requests
+psycopg2-binary
+python-dotenv
