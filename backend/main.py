@@ -88,6 +88,8 @@ async def upload_image(file: UploadFile = File(...)):
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
         
+    return {"url": f"http://localhost:8001/static/uploads/{unique_filename}"}
+        
 from pydantic import BaseModel
 
 class ImageUrl(BaseModel):
