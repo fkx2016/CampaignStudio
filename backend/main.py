@@ -235,6 +235,14 @@ def update_post(post_id: int, post_data: CampaignPost, session: Session = Depend
     session.refresh(post)
     return post
 
+# --- AI ROUTES ---
+from .ai.optimizer import OptimizationRequest, OptimizationResponse, simple_optimize
+
+@app.post("/api/ai/optimize", response_model=OptimizationResponse)
+def optimize_text(request: OptimizationRequest, session: Session = Depends(get_session)):
+    # In the future, we can use 'session' to look up Mode details
+    return simple_optimize(request)
+
 # --- FILE UPLOAD ---
 import os
 import uuid

@@ -5,16 +5,18 @@ import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { CampaignPost } from "@/types/schema";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Copy, ExternalLink, RefreshCw, CheckCircle, ChevronLeft, ChevronRight, Save } from "lucide-react";
+import { Copy, ExternalLink, RefreshCw, CheckCircle, ChevronLeft, ChevronRight, Save, Settings, Image as ImageIcon, Music, Layout, Type, Share2, Upload, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ModeSwitcher from "@/components/mode-switcher/ModeSwitcher";
 import MusicPlayer from "@/components/MusicPlayer";
 import MediaEditor from "@/components/MediaEditor";
 import SettingsModal from "@/components/settings/SettingsModal";
+import AITextOptimizer from "@/components/AITextOptimizer";
 // Removed Button/Slider imports as we use native/inline for now to avoid errors
 
 export default function CampaignDashboard() {
@@ -258,6 +260,24 @@ export default function CampaignDashboard() {
     return (
       <div className="min-h-screen bg-slate-50 p-8 font-sans text-slate-900">
         <div className="max-w-6xl mx-auto space-y-6">
+          {/* HEADER */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <img src="/ChristmasStar.png" alt="Logo" className="w-8 h-8 object-contain" />
+              <h1 className="text-2xl font-bold tracking-tight text-slate-900">CampaignStudio</h1>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={() => setShowMusic(!showMusic)} className={showMusic ? "bg-blue-50 border-blue-200 text-blue-600" : ""}>
+                <Music className="w-4 h-4 mr-2" />
+                {showMusic ? "Hide Player" : "Focus Music"}
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setShowSettings(true)}>
+                <Settings className="w-4 h-4 mr-2" />
+                Settings
+              </Button>
+            </div>
+          </div>
+
           {/* Mode Switcher is ALWAYS visible so user can backtrack */}
           <ModeSwitcher currentMode={currentMode} onModeChange={setCurrentMode} />
 
@@ -405,7 +425,10 @@ export default function CampaignDashboard() {
 
               {/* Hook Input */}
               <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Hook / Content</label>
+                <div className="flex justify-between items-center">
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Hook / Content</label>
+                  <AITextOptimizer text={editedHook} mode={currentMode} onOptimized={setEditedHook} />
+                </div>
                 <div className="relative">
                   <Textarea
                     value={editedHook}
@@ -637,22 +660,7 @@ export default function CampaignDashboard() {
 }
 
 // --- Minimal UI Components (Inline for Prototype Speed) ---
-
-function Button({ className, variant = "default", size = "default", children, ...props }: any) {
-  const base = "inline-flex items-center justify-center rounded-md text-sm font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background shadow-sm";
-  const sizes: any = {
-    default: "h-10 py-2 px-4",
-    sm: "h-9 px-3 rounded-md",
-    lg: "h-11 px-8 rounded-md",
-    icon: "h-10 w-10",
-  };
-  const variants: any = {
-    default: "bg-blue-600 text-white hover:bg-blue-700 border border-transparent", // High contrast blue
-    outline: "border-2 border-slate-300 bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-400", // Darker text, thicker border
-    secondary: "bg-slate-100 text-slate-900 hover:bg-slate-200 border border-slate-200",
-  };
-  return <button className={cn(base, variants[variant], sizes[size], className)} {...props}>{children}</button>;
-}
+// Button component removed as it is now imported from @/components/ui/button
 
 function Badge({ children, variant }: any) {
   const colors = variant === "success" ? "bg-green-100 text-green-800 border border-green-200" : "bg-amber-100 text-amber-800 border border-amber-200";

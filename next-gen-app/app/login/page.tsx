@@ -45,11 +45,11 @@ export default function LoginPage() {
         <div className="min-h-screen flex items-center justify-center bg-slate-50">
             <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-md border border-slate-200">
                 <div className="text-center mb-8">
-                    <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-blue-100 text-blue-600 mb-4">
-                        <ShieldCheck className="w-6 h-6" />
+                    <div className="flex justify-center mb-4">
+                        <img src="/ChristmasStar.png" alt="Logo" className="w-12 h-12 object-contain" />
                     </div>
-                    <h1 className="text-2xl font-bold text-slate-900">Welcome Back</h1>
-                    <p className="text-slate-500 mt-2">Sign in to your Campaign Studio cockpit.</p>
+                    <h1 className="text-2xl font-bold text-slate-900">CampaignStudio</h1>
+                    <p className="text-slate-500 mt-2">Sign in to your AI Cockpit.</p>
                 </div>
 
                 {error && (
