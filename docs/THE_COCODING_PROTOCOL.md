@@ -25,6 +25,13 @@ To practice CoCoding, one must adhere to four non-negotiable disciplines. These 
 *   **The Tool:** Docker & Docker Compose.
 *   **Reference:** [The Docker Manifesto](DOCKER_MANIFESTO.md)
 
+    > **The CoCoding Theorem:**
+    > *"An application cannot be reliably CoCoded unless its environment is defined as code."*
+    >
+    > If the environment is just "whatever is on the laptop," the AI is blind.
+    > If the environment is a Dockerfile, the AI sees **everything**.
+    > **Therefore: If it doesn't have a Dockerfile, it is not a CoCoding project.**
+
 ### Pillar 2: The Contract of Strictness (The Type Discipline)
 *   **The Principle:** "Trust, but Verify (at Runtime)."
 *   **The Shift:** Moving from "Python dicts and Any" to "Strict Schemas."
