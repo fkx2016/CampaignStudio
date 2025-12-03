@@ -36,8 +36,12 @@ export default function LoginPage() {
             }
 
             login(data.access_token);
-        } catch (err: any) {
-            setError(err.message);
+        } catch (err: unknown) {
+            if (err instanceof Error) {
+                setError(err.message);
+            } else {
+                setError("An unknown error occurred");
+            }
         } finally {
             setLoading(false);
         }
@@ -48,6 +52,7 @@ export default function LoginPage() {
             <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-md border border-slate-200">
                 <div className="text-center mb-8">
                     <div className="flex justify-center mb-4">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src="/ChristmasStar.png" alt="Logo" className="w-12 h-12 object-contain" />
                     </div>
                     <h1 className="text-2xl font-bold text-slate-900">CampaignStudio</h1>
@@ -108,7 +113,7 @@ export default function LoginPage() {
                 </form>
 
                 <div className="mt-6 text-center text-sm text-slate-500">
-                    Don't have an account?{" "}
+                    Don&apos;t have an account?{" "}
                     <Link href="/register" className="text-blue-600 hover:underline font-medium">
                         Create one
                     </Link>

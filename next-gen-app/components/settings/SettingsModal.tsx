@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X, Check, Search, Globe, Hash, Type } from "lucide-react";
+import { X, Search, Globe, Hash } from "lucide-react";
 
 interface Platform {
     id: number;
@@ -24,15 +24,22 @@ export default function SettingsModal({ open, onOpenChange }: { open: boolean; o
     // Fetch Platforms & Settings
     useEffect(() => {
         if (open) {
-            setLoading(true);
-            Promise.all([
-                fetch("http://localhost:8001/api/platforms").then(res => res.json()),
-                fetch("http://localhost:8001/api/settings").then(res => res.json())
-            ]).then(([platformsData, settingsData]) => {
-                setPlatforms(platformsData);
-                setSettings(settingsData);
-                setLoading(false);
-            }).catch(err => console.error("Failed to fetch data", err));
+            const loadData = async () => {
+                setLoading(true);
+                try {
+                    const [platformsData, settingsData] = await Promise.all([
+                        fetch("http://localhost:8001/api/platforms").then(res => res.json()),
+                        fetch("http://localhost:8001/api/settings").then(res => res.json())
+                    ]);
+                    setPlatforms(platformsData);
+                    setSettings(settingsData);
+                } catch (err) {
+                    console.error("Failed to fetch data", err);
+                } finally {
+                    setLoading(false);
+                }
+            };
+            loadData();
         }
     }, [open]);
 

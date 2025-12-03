@@ -33,36 +33,29 @@ export default function Draggable({ children, initialPos = { x: 0, y: 0 }, class
         e.preventDefault();
     };
 
-    const onMouseMove = (e: MouseEvent) => {
-        if (!isDragging) return;
-
-        // Calculate new position relative to parent (or window if fixed)
-        // We are using fixed positioning for the popup usually.
-        const newX = e.clientX - relPos.x;
-        const newY = e.clientY - relPos.y;
-
-        setPosition({ x: newX, y: newY });
-        e.stopPropagation();
-        e.preventDefault();
-    };
-
-    const onMouseUp = () => {
-        setIsDragging(false);
-    };
-
     useEffect(() => {
+        const onMouseMove = (e: MouseEvent) => {
+            if (!isDragging) return;
+            const newX = e.clientX - relPos.x;
+            const newY = e.clientY - relPos.y;
+            setPosition({ x: newX, y: newY });
+            e.stopPropagation();
+            e.preventDefault();
+        };
+
+        const onMouseUp = () => {
+            setIsDragging(false);
+        };
+
         if (isDragging) {
             window.addEventListener("mousemove", onMouseMove);
             window.addEventListener("mouseup", onMouseUp);
-        } else {
-            window.removeEventListener("mousemove", onMouseMove);
-            window.removeEventListener("mouseup", onMouseUp);
         }
         return () => {
             window.removeEventListener("mousemove", onMouseMove);
             window.removeEventListener("mouseup", onMouseUp);
         };
-    }, [isDragging]);
+    }, [isDragging, relPos]);
 
     return (
         <div

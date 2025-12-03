@@ -47,3 +47,25 @@ export const CampaignSchema = z.object({
 });
 
 export type Campaign = z.infer<typeof CampaignSchema>;
+
+export const ModeSchema = z.object({
+    id: z.number().optional(),
+    name: z.string(),
+    slug: z.string(),
+    description: z.string(),
+});
+
+export type Mode = z.infer<typeof ModeSchema>;
+
+export const PlatformSchema = z.object({
+    id: z.number().optional(),
+    name: z.string(),
+    slug: z.string(),
+    base_url: z.string(),
+    char_limit: z.number(),
+    is_active: z.boolean().optional(),
+    default_hashtags: z.string().optional(),
+    post_suffix: z.string().optional(),
+});
+
+export type Platform = z.infer<typeof PlatformSchema>;

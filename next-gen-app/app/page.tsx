@@ -3,14 +3,14 @@
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
-import { CampaignPost, Campaign } from "@/types/schema";
+import { CampaignPost, Campaign, Mode, Platform } from "@/types/schema";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Copy, ExternalLink, RefreshCw, CheckCircle, ChevronLeft, ChevronRight, Save, Settings, Image as ImageIcon, Music, Layout, Type, Share2, Upload, X, Plus } from "lucide-react";
+import { Copy, ExternalLink, RefreshCw, CheckCircle, ChevronLeft, ChevronRight, Save, Settings, Music, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ModeSwitcher from "@/components/mode-switcher/ModeSwitcher";
 import MusicPlayer from "@/components/MusicPlayer";
@@ -38,17 +38,26 @@ export default function CampaignDashboard() {
   const [showMusic, setShowMusic] = useState(false); // State for Music Player
   const [showSettings, setShowSettings] = useState(false); // State for Settings
   const [showCreateCampaign, setShowCreateCampaign] = useState(false); // State for Create Campaign Modal
+  const [systemInfo, setSystemInfo] = useState<{ version: string, database_type: string } | null>(null);
+
+  // Fetch System Info
+  useEffect(() => {
+    fetch("http://localhost:8001/api/system-info")
+      .then(res => res.json())
+      .then(data => setSystemInfo(data))
+      .catch(err => console.error("Failed to fetch system info", err));
+  }, []);
   const [isEditingMedia, setIsEditingMedia] = useState(false); // State for Media Editor
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [selectedCampaignId, setSelectedCampaignId] = useState<number | null>(null);
-  const [activePlatforms, setActivePlatforms] = useState<any[]>([]);
+  const [activePlatforms, setActivePlatforms] = useState<Platform[]>([]);
 
   // FETCH PLATFORMS
   const fetchActivePlatforms = async () => {
     try {
       const res = await fetch("http://localhost:8001/api/platforms");
       const data = await res.json();
-      setActivePlatforms(data.filter((p: any) => p.is_active).sort((a: any, b: any) => a.id - b.id));
+      setActivePlatforms(data.filter((p: Platform) => p.is_active).sort((a: Platform, b: Platform) => (a.id || 0) - (b.id || 0)));
     } catch (err) {
       console.error("Failed to fetch platforms", err);
     }
@@ -120,7 +129,7 @@ export default function CampaignDashboard() {
       // Quick hack: We will fetch modes to find the ID.
       const modeRes = await fetch("http://localhost:8001/api/modes");
       const modes = await modeRes.json();
-      const modeObj = modes.find((m: any) => m.slug === currentMode);
+      const modeObj = modes.find((m: Mode) => m.slug === currentMode);
 
       if (!modeObj) {
         alert("Error: Could not find mode ID");
@@ -156,7 +165,7 @@ export default function CampaignDashboard() {
       setEditedHook(post.hook_text);
       setEditedImageUrl(post.media_image_url || "");
     }
-  }, [currentIndex, posts]);
+  }, [post]);
 
   // SAVE FUNCTION
   const savePost = async () => {
@@ -333,6 +342,7 @@ export default function CampaignDashboard() {
           {/* HEADER */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/ChristmasStar.png" alt="Logo" className="w-8 h-8 object-contain" />
               <h1 className="text-2xl font-bold tracking-tight text-slate-900">CampaignStudio</h1>
             </div>
@@ -377,7 +387,7 @@ export default function CampaignDashboard() {
                     campaign_id: selectedCampaignId
                   };
                   // Optimistic UI update
-                  setPosts([newPost as any]);
+                  setPosts([newPost as CampaignPost]);
                   setCurrentIndex(0);
                 }}
                 className="bg-blue-600 hover:bg-blue-700 text-white"
@@ -412,8 +422,8 @@ export default function CampaignDashboard() {
 
               {/* App Info */}
               <div className="bg-slate-100 p-3 rounded-md border border-slate-200">
-                <h1 className="text-sm font-bold text-slate-900">Campaign Studio v2.0</h1>
-                <p className="text-xs text-slate-500">Connected to Supabase (Postgres)</p>
+                <h1 className="text-sm font-bold text-slate-900">Campaign Studio v{systemInfo?.version || "2.0"}</h1>
+                <p className="text-xs text-slate-500">Connected to {systemInfo?.database_type || "..."}</p>
               </div>
 
               {/* Campaign Selector */}
@@ -703,6 +713,7 @@ export default function CampaignDashboard() {
                           {editedImageUrl.includes("localhost") ? "Local File" : "Remote URL"}
                         </Badge>
                       </div>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={editedImageUrl}
                         alt="Social Card"
@@ -806,7 +817,7 @@ export default function CampaignDashboard() {
 // --- Minimal UI Components (Inline for Prototype Speed) ---
 // Button component removed as it is now imported from @/components/ui/button
 
-function Badge({ children, variant }: any) {
+function Badge({ children, variant }: { children: React.ReactNode, variant?: string }) {
   const colors = variant === "success" ? "bg-green-100 text-green-800 border border-green-200" : "bg-amber-100 text-amber-800 border border-amber-200";
   return <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${colors}`}>{children}</span>;
 }

@@ -138,6 +138,28 @@ def on_startup():
 def read_root():
     return {"message": "Campaign Poster API v2.0 is Live"}
 
+@app.get("/api/system-info")
+def get_system_info():
+    import os
+    db_url = os.environ.get("DATABASE_URL", "")
+    
+    db_type = "Unknown"
+    if "sqlite" in db_url:
+        db_type = "SQLite (Local File)"
+    elif "postgres" in db_url:
+        if "supabase" in db_url:
+            db_type = "Supabase (Cloud)"
+        elif "db" in db_url or "localhost" in db_url:
+            db_type = "Local Docker (Postgres)"
+        else:
+            db_type = "Postgres (Remote)"
+            
+    return {
+        "version": "2.0.0",
+        "database_type": db_type,
+        "environment": "Development" if "dev" in os.environ.get("ENV", "dev") else "Production"
+    }
+
 # ... (Existing Post Routes) ...
 
 # --- SETTINGS ROUTES ---

@@ -2,7 +2,6 @@
 
 import { useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import Link from "next/link";
 import { Loader2, Lock, Eye, EyeOff } from "lucide-react";
 
 function ResetPasswordForm() {
@@ -40,8 +39,12 @@ function ResetPasswordForm() {
 
             setMessage("Password reset successfully! Redirecting to login...");
             setTimeout(() => router.push("/login"), 2000);
-        } catch (err: any) {
-            setError(err.message);
+        } catch (err: unknown) {
+            if (err instanceof Error) {
+                setError(err.message);
+            } else {
+                setError("An unknown error occurred");
+            }
         } finally {
             setLoading(false);
         }
@@ -59,6 +62,7 @@ function ResetPasswordForm() {
         <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-md border border-slate-200">
             <div className="text-center mb-8">
                 <div className="flex justify-center mb-4">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src="/ChristmasStar.png" alt="Logo" className="w-12 h-12 object-contain" />
                 </div>
                 <h1 className="text-2xl font-bold text-slate-900">Set New Password</h1>

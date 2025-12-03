@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import QRCode from "react-qr-code";
-import { Type, QrCode, Move, X, Check } from "lucide-react";
+import { Type, QrCode, X, Check } from "lucide-react";
 import Draggable from "@/components/ui/Draggable"; // Re-using our draggable component
 
 interface MediaEditorProps {

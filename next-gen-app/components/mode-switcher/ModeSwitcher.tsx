@@ -1,23 +1,17 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from "@/components/ui/select";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import CreateModeModal from "./CreateModeModal";
+import { Mode } from "@/types/schema";
 
 // In a real app, we would fetch this from the API (which reads the JSON)
 // For now, we hardcode the schema we just designed to prototype the UI.
 // Default fallback if API fails
-const DEFAULT_MODES = [
+const DEFAULT_MODES: (Mode & { theme?: string })[] = [
   { slug: "ebeg", name: "E-Beg (Donation)", description: "Optimized for sympathy, wit, and urgency.", theme: "bg-emerald-500" },
   { slug: "content", name: "Content (Thought Leadership)", description: "For high-value educational content.", theme: "bg-indigo-600" },
   { slug: "promotion", name: "Promotion (Sales)", description: "For selling Products, Services, or Hardware.", theme: "bg-blue-600" },
@@ -25,7 +19,7 @@ const DEFAULT_MODES = [
 ];
 
 export default function ModeSwitcher({ currentMode, onModeChange }: { currentMode: string, onModeChange: (mode: string) => void }) {
-  const [modes, setModes] = useState<any[]>([]);
+  const [modes, setModes] = useState<Mode[]>([]);
   const [showCreateMode, setShowCreateMode] = useState(false);
 
   // Fetch Modes
@@ -43,11 +37,11 @@ export default function ModeSwitcher({ currentMode, onModeChange }: { currentMod
 
   // Helper to get theme color (random-ish based on length if not defined)
   const getTheme = (slug: string) => {
-    const defaults: any = { ebeg: "bg-emerald-500", content: "bg-indigo-600", promotion: "bg-blue-600", political: "bg-red-700" };
+    const defaults: Record<string, string> = { ebeg: "bg-emerald-500", content: "bg-indigo-600", promotion: "bg-blue-600", political: "bg-red-700" };
     return defaults[slug] || "bg-slate-600";
   };
 
-  const handleCreateMode = async (newMode: any) => {
+  const handleCreateMode = async (newMode: Partial<Mode>) => {
     try {
       const res = await fetch("http://localhost:8001/api/modes", {
         method: "POST",
