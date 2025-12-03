@@ -5,6 +5,31 @@ Campaign Studio's AI must understand **context** (what mode are we in?) and **in
 
 ---
 
+## 0. Environment Agnostic Architecture
+**"Code Once, Run Everywhere"**
+
+Campaign Studio is designed to run seamlessly in two distinct environments using a single codebase:
+
+1.  **SaaS (Cloud/Web):**
+    *   **Frontend:** Next.js hosted on Vercel/AWS.
+    *   **Backend:** FastAPI on cloud containers (Docker/K8s).
+    *   **Database:** PostgreSQL (Cloud-managed).
+    *   **Auth:** Cloud-based (OAuth/Email).
+
+2.  **Local (Desktop/Offline):**
+    *   **Frontend:** Next.js wrapped in Electron/Tauri or running locally.
+    *   **Backend:** FastAPI running as a local process.
+    *   **Database:** SQLite (Local file).
+    *   **Auth:** Local Mode (No sync) or Cloud Login (Optional sync).
+
+**Implications for AI & Modes:**
+*   **Mode Definitions:** Stored in the database (SQLModel) so they work identically on SQLite and Postgres.
+*   **AI Processing:**
+    *   *Cloud:* Calls our central API gateway.
+    *   *Local:* Calls the user's own API key (BYOK) or a local LLM (Llama 3 via Ollama).
+
+---
+
 ## 1. The Mode System
 
 ### What is a "Mode"?
