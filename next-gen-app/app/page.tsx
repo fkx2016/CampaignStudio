@@ -242,155 +242,180 @@ export default function CampaignDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 p-8 font-sans text-slate-900">
-      {/* ... (Header remains same) ... */}
+    <div className="min-h-screen bg-slate-50 p-6 font-sans text-slate-900">
 
-      <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
+      {/* 3-COLUMN LAYOUT */}
+      <div className="max-w-[1800px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-        {/* LEFT COLUMN: Content & Controls */}
-        <div className="lg:col-span-7 space-y-6">
+        {/* COL 1: LEFT PANEL (Mode & Navigation) - Span 3 */}
+        <div className="lg:col-span-3 space-y-6">
 
-          {/* MODE SWITCHER (New) */}
+          {/* 1. Mode Switcher */}
           <ModeSwitcher currentMode={currentMode} onModeChange={setCurrentMode} />
 
-          {/* Header */}
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-slate-900">Campaign Studio</h1>
-              <p className="text-slate-500">Connected to FastAPI Backend</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" onClick={() => alert("Settings coming in v0.2!")}>
-                ⚙️ Settings
-              </Button>
-              <div className="h-6 w-px bg-slate-300 mx-2"></div>
-              <Button variant="outline" onClick={prevPost}>
-                ← Prev
-              </Button>
-              <span className="text-sm font-mono text-slate-500 min-w-[60px] text-center">
-                {currentIndex + 1} / {posts.length}
-              </span>
-              <Button variant="outline" onClick={nextPost}>
-                Next →
-              </Button>
-            </div>
-          </div>
-
-          {/* Main Card */}
+          {/* 2. Campaign Control Panel */}
           <Card className="shadow-sm border-slate-200">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="text-lg text-slate-700">Post ID: {post.id}</CardTitle>
-              <div className="flex gap-2">
-                <Button
-                  size="sm"
-                  className="bg-green-600 hover:bg-green-700 text-white font-bold border-transparent"
-                  onClick={savePost}
-                  disabled={isSaving}
-                  style={{ backgroundColor: "#16a34a" }} // Force Green
-                >
-                  <Save className="w-4 h-4 mr-2" /> {isSaving ? "Saving..." : "Save Changes"}
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg font-bold text-slate-800">Campaign Control</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+
+              {/* App Info */}
+              <div className="bg-slate-100 p-3 rounded-md border border-slate-200">
+                <h1 className="text-sm font-bold text-slate-900">Campaign Studio v2.0</h1>
+                <p className="text-xs text-slate-500">Connected to Supabase (Postgres)</p>
+              </div>
+
+              {/* Navigation Controls */}
+              <div className="flex items-center justify-between gap-2">
+                <Button variant="outline" onClick={prevPost} className="flex-1">
+                  <ChevronLeft className="w-4 h-4 mr-1" /> Prev
                 </Button>
+                <span className="text-sm font-mono font-bold text-slate-700 min-w-[60px] text-center bg-white border border-slate-200 py-2 rounded-md">
+                  {currentIndex + 1} / {posts.length}
+                </span>
+                <Button variant="outline" onClick={nextPost} className="flex-1">
+                  Next <ChevronRight className="w-4 h-4 ml-1" />
+                </Button>
+              </div>
+
+              <div className="h-px bg-slate-100 my-2"></div>
+
+              {/* Settings / Meta Actions */}
+              <Button variant="secondary" className="w-full justify-start" onClick={() => alert("Settings coming soon!")}>
+                ⚙️ Workspace Settings
+              </Button>
+              <Button variant="secondary" className="w-full justify-start" onClick={() => alert("Analytics coming soon!")}>
+                📊 View Analytics
+              </Button>
+
+              <div className="h-px bg-slate-100 my-2"></div>
+
+              {/* Studio Atmosphere */}
+              <div className="bg-indigo-50 p-3 rounded-md border border-indigo-100">
+                <h3 className="text-xs font-bold text-indigo-400 uppercase tracking-wider mb-2">Studio Atmosphere</h3>
+                <Button
+                  className="w-full bg-white text-indigo-600 hover:bg-indigo-50 border border-indigo-200 shadow-sm"
+                  onClick={() => window.open("https://www.youtube.com/watch?v=DlrUlJIRjsg", "_blank")}
+                >
+                  🎧 Play Focus Music
+                </Button>
+              </div>
+
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* COL 2: MIDDLE PANEL (Editor Studio) - Span 5 */}
+        <div className="lg:col-span-5 space-y-6">
+
+          {/* Main Editor Card */}
+          <Card className="shadow-sm border-slate-200 h-full">
+            <CardHeader className="flex flex-row items-center justify-between bg-white border-b border-slate-100 sticky top-0 z-10">
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">✍️</span>
+                <CardTitle className="text-lg text-slate-800">Editor Studio</CardTitle>
+              </div>
+              <div className="flex gap-2">
                 <Badge variant={post.status === "Posted" ? "success" : "warning"}>
                   {post.status}
                 </Badge>
+                <Button
+                  size="sm"
+                  className="bg-green-600 hover:bg-green-700 text-white font-bold border-transparent shadow-sm"
+                  onClick={savePost}
+                  disabled={isSaving}
+                  style={{ backgroundColor: "#16a34a" }}
+                >
+                  <Save className="w-4 h-4 mr-2" /> {isSaving ? "Saving..." : "Save"}
+                </Button>
               </div>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Title</label>
+            <CardContent className="space-y-6 p-6">
+
+              {/* Title Input */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Campaign Title</label>
                 <Input
                   value={editedTitle}
                   onChange={(e) => setEditedTitle(e.target.value)}
-                  className="mt-1 font-semibold text-lg"
+                  className="font-semibold text-lg border-slate-300 focus:border-blue-500 focus:ring-blue-500"
+                  placeholder="Enter campaign title..."
                 />
               </div>
 
-              <div className="bg-slate-100 p-4 rounded-lg border border-slate-200">
-                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Hook Text</label>
-                <Textarea
-                  value={editedHook}
-                  onChange={(e) => setEditedHook(e.target.value)}
-                  className="min-h-[100px] text-slate-700 font-mono text-sm"
-                />
+              {/* Hook Input */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Hook / Content</label>
+                <div className="relative">
+                  <Textarea
+                    value={editedHook}
+                    onChange={(e) => setEditedHook(e.target.value)}
+                    className="min-h-[200px] text-slate-700 font-mono text-sm border-slate-300 focus:border-blue-500 focus:ring-blue-500 resize-y p-4 leading-relaxed"
+                    placeholder="Write your hook here..."
+                  />
+                  <div className="absolute bottom-2 right-2 text-xs text-slate-400">
+                    {editedHook.length} chars
+                  </div>
+                </div>
               </div>
 
               {/* Action Bar */}
-              <div className="flex gap-3 pt-4 border-t border-slate-100">
-                <Button variant="outline" className="flex-1">
-                  <RefreshCw className="w-4 h-4 mr-2" /> Generate New
+              <div className="grid grid-cols-2 gap-3 pt-2">
+                <Button variant="outline" className="w-full">
+                  <RefreshCw className="w-4 h-4 mr-2" /> AI Rewrite
                 </Button>
-                <Button className="flex-1 bg-blue-600 hover:bg-blue-700 text-white">
-                  <Copy className="w-4 h-4 mr-2" /> Copy Content
+                <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">
+                  <Copy className="w-4 h-4 mr-2" /> Copy Text
                 </Button>
               </div>
+
+              {/* Platform Previews (Tabs) */}
+              <div className="pt-6 border-t border-slate-100">
+                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 block">Platform Preview</label>
+                <Tabs defaultValue="substack" className="w-full">
+                  <TabsList className="grid w-full grid-cols-3 bg-slate-100 p-1 rounded-lg">
+                    <TabsTrigger value="substack" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">Substack</TabsTrigger>
+                    <TabsTrigger value="linkedin" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">LinkedIn</TabsTrigger>
+                    <TabsTrigger value="x" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">X</TabsTrigger>
+                  </TabsList>
+
+                  {/* Tab Contents (Simplified for brevity, same logic as before) */}
+                  <TabsContent value="substack" className="mt-4">
+                    <div className="p-4 bg-white rounded-lg border border-slate-200 text-sm text-slate-600 space-y-2">
+                      <h3 className="font-bold text-slate-900">{editedTitle || "Untitled"}</h3>
+                      <p className="line-clamp-3">{editedHook || "No content..."}</p>
+                      <Button size="sm" variant="outline" className="w-full mt-2 text-xs" onClick={() => window.open("https://substack.com/dashboard/post/new", "_blank")}>
+                        Open Substack <ExternalLink className="w-3 h-3 ml-2" />
+                      </Button>
+                    </div>
+                  </TabsContent>
+                  <TabsContent value="linkedin" className="mt-4">
+                    <div className="p-4 bg-white rounded-lg border border-slate-200 text-sm text-slate-600 space-y-2">
+                      <p className="line-clamp-4">{editedHook || "No content..."}</p>
+                      <p className="text-blue-600 text-xs">#Campaign #Update</p>
+                      <Button size="sm" variant="outline" className="w-full mt-2 text-xs" onClick={() => window.open("https://www.linkedin.com/feed/", "_blank")}>
+                        Open LinkedIn <ExternalLink className="w-3 h-3 ml-2" />
+                      </Button>
+                    </div>
+                  </TabsContent>
+                  <TabsContent value="x" className="mt-4">
+                    <div className="p-4 bg-white rounded-lg border border-slate-200 text-sm text-slate-600 space-y-2">
+                      <p className="line-clamp-3">{editedHook?.substring(0, 280) || "No content..."}</p>
+                      <Button size="sm" variant="outline" className="w-full mt-2 text-xs" onClick={() => window.open("https://twitter.com/compose/tweet", "_blank")}>
+                        Open X <ExternalLink className="w-3 h-3 ml-2" />
+                      </Button>
+                    </div>
+                  </TabsContent>
+                </Tabs>
+              </div>
+
             </CardContent>
           </Card>
-
-          {/* Platform Tabs */}
-          <Tabs defaultValue="substack" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 bg-slate-200/50">
-              <TabsTrigger value="substack">Substack</TabsTrigger>
-              <TabsTrigger value="linkedin">LinkedIn</TabsTrigger>
-              <TabsTrigger value="x">X (Twitter)</TabsTrigger>
-            </TabsList>
-            <TabsContent value="substack" className="mt-4">
-              <div className="p-4 bg-white rounded-lg border border-slate-200 text-sm text-slate-600 space-y-4">
-                <div>
-                  <h3 className="font-bold mb-2 text-slate-900">{post.title}</h3>
-                  <p>{post.hook_text}</p>
-                </div>
-                <div className="pt-4 border-t border-slate-100 flex justify-between items-center">
-                  <span className="italic text-slate-400">Draft Preview</span>
-                  <Button
-                    className="text-white hover:opacity-90 border-transparent font-bold"
-                    style={{ backgroundColor: "#FF6719" }}
-                    onClick={() => window.open("https://substack.com/dashboard/post/new", "_blank")}
-                  >
-                    Open Substack <ExternalLink className="w-4 h-4 ml-2" />
-                  </Button>
-                </div>
-              </div>
-            </TabsContent>
-            <TabsContent value="linkedin" className="mt-4">
-              <div className="p-4 bg-white rounded-lg border border-slate-200 text-sm text-slate-600 space-y-4">
-                <div>
-                  <p>{post.hook_text}</p>
-                  <p className="mt-2 text-blue-600">#AI #TechLife #Campaign</p>
-                </div>
-                <div className="pt-4 border-t border-slate-100 flex justify-between items-center">
-                  <span className="italic text-slate-400">Draft Preview</span>
-                  <Button
-                    className="text-white hover:opacity-90 border-transparent font-bold"
-                    style={{ backgroundColor: "#0077b5" }}
-                    onClick={() => window.open("https://www.linkedin.com/feed/", "_blank")}
-                  >
-                    Open LinkedIn <ExternalLink className="w-4 h-4 ml-2" />
-                  </Button>
-                </div>
-              </div>
-            </TabsContent>
-            <TabsContent value="x" className="mt-4">
-              <div className="p-4 bg-white rounded-lg border border-slate-200 text-sm text-slate-600 space-y-4">
-                <div>
-                  <p>{post.hook_text.substring(0, 280)}</p>
-                </div>
-                <div className="pt-4 border-t border-slate-100 flex justify-between items-center">
-                  <span className="italic text-slate-400">Draft Preview</span>
-                  <Button
-                    className="text-white hover:opacity-90 border-transparent font-bold"
-                    style={{ backgroundColor: "#000000" }}
-                    onClick={() => window.open("https://twitter.com/compose/tweet", "_blank")}
-                  >
-                    Open X <ExternalLink className="w-4 h-4 ml-2" />
-                  </Button>
-                </div>
-              </div>
-            </TabsContent>
-          </Tabs>
         </div>
 
-        {/* RIGHT COLUMN: Media Studio */}
-        <div className="lg:col-span-5 space-y-6">
+        {/* COL 3: RIGHT PANEL (Media Studio) - Span 4 */}
+        <div className="lg:col-span-4 space-y-6">
           <Card className="bg-white shadow-sm border-slate-200 h-full">
             <CardHeader className="border-b border-slate-100 bg-slate-50/50">
               <CardTitle className="flex items-center gap-2 text-slate-900">
@@ -423,7 +448,6 @@ export default function CampaignDashboard() {
                       alt="Social Card"
                       className="w-full h-auto max-h-[600px] object-contain bg-slate-50"
                       onError={(e) => {
-                        // Just hide the image, don't delete the text!
                         (e.target as HTMLImageElement).style.display = 'none';
                         (e.target as HTMLImageElement).parentElement?.classList.add('bg-red-50');
                       }}
