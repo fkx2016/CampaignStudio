@@ -1,0 +1,81 @@
+{
+    "meta": {
+        "version": "1.0",
+        "description": "Defines the operational modes for Campaign Studio. Each mode alters the UI, Prompts, and Required Fields."
+    },
+    "modes": {
+        "ebeg": {
+            "name": "E-Beg (Donation)",
+            "description": "Optimized for sympathy, wit, and urgency to drive donations.",
+            "ui_config": {
+                "theme_color": "emerald-500",
+                "primary_action_label": "Ask for Money",
+                "required_fields": [
+                    "donation_link",
+                    "urgency_level",
+                    "cause_story"
+                ]
+            },
+            "ai_prompts": {
+                "hook_style": "Emotional, Urgent, or Witty/Self-Deprecating",
+                "tone": "Sympathetic but not pathetic",
+                "closing_hook_template": "Donate here: {{donation_link}}"
+            }
+        },
+        "content": {
+            "name": "Content (Thought Leadership)",
+            "description": "For high-value educational content like CoCoding, TQL, or Vibe Coding.",
+            "ui_config": {
+                "theme_color": "indigo-600",
+                "primary_action_label": "Publish Insight",
+                "required_fields": [
+                    "topic",
+                    "key_insight",
+                    "complexity_level"
+                ]
+            },
+            "ai_prompts": {
+                "hook_style": "Intellectual, Contrarian, or 'How-To'",
+                "tone": "Authoritative, Educational, Visionary",
+                "closing_hook_template": "Follow for more {{topic}} insights."
+            }
+        },
+        "promotion": {
+            "name": "Promotion (Sales)",
+            "description": "For selling Products, Services, or Hardware.",
+            "ui_config": {
+                "theme_color": "blue-600",
+                "primary_action_label": "Launch Product",
+                "required_fields": [
+                    "product_name",
+                    "price",
+                    "benefit_list",
+                    "call_to_action"
+                ]
+            },
+            "ai_prompts": {
+                "hook_style": "Problem-Agitation-Solution",
+                "tone": "Persuasive, Exciting, Value-Driven",
+                "closing_hook_template": "Get it now: {{call_to_action}}"
+            }
+        },
+        "political": {
+            "name": "Political (Advocacy)",
+            "description": "Focus on goals, objectives, and mobilization.",
+            "ui_config": {
+                "theme_color": "red-700",
+                "primary_action_label": "Mobilize",
+                "required_fields": [
+                    "objective",
+                    "target_audience",
+                    "action_required"
+                ]
+            },
+            "ai_prompts": {
+                "hook_style": "Rallying Cry, Us vs Them, Vision of Future",
+                "tone": "Inspiring, Urgent, Determined",
+                "closing_hook_template": "Join the movement: {{action_required}}"
+            }
+        }
+    }
+}
