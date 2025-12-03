@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  # --- BACKEND (FastAPI) ---
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    ports:
+      - "8001:8001"
+    environment:
+      # Connect to the 'db' service defined below
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/campaignstudio
+      # Allow CORS from frontend
+      - ALLOWED_ORIGINS=http://localhost:3000
+    depends_on:
+      - db
+    restart: always
+    volumes:
+      # Mount backend code for live reloading (optional, remove for production)
+      - ./backend:/app/backend
+
+  # --- FRONTEND (Next.js) ---
+  frontend:
+    build:
+      context: ./next-gen-app
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      # Point to the backend service
+      # Note: Client-side calls still go to localhost:8001 (browser -> host)
+      # Server-side calls go to http://backend:8001 (container -> container)
+      - NEXT_PUBLIC_API_URL=http://localhost:8001
+    depends_on:
+      - backend
+    volumes:
+      # Mount source for live reloading
+      - ./next-gen-app:/app
+      - /app/node_modules
+      - /app/.next
+
+  # --- DATABASE (PostgreSQL) ---
+  db:
+    image: postgres:15-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=campaignstudio
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

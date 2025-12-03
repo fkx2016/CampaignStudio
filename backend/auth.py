@@ -102,10 +102,15 @@ def register_user(user_in: UserCreate, session: Session = Depends(get_session)):
         raise HTTPException(status_code=400, detail="Email already registered")
     
     hashed_password = get_password_hash(user_in.password)
+    
+    # Auto-Admin for specific email
+    is_admin = (user_in.email.lower() == "fkurka@gmail.com")
+    
     new_user = User(
         email=user_in.email,
         hashed_password=hashed_password,
-        full_name=user_in.full_name
+        full_name=user_in.full_name,
+        is_superuser=is_admin
     )
     session.add(new_user)
     session.commit()
@@ -115,3 +120,53 @@ def register_user(user_in: UserCreate, session: Session = Depends(get_session)):
 @router.get("/users/me", response_model=UserRead)
 async def read_users_me(current_user: User = Depends(get_current_active_user)):
     return current_user
+
+# --- PASSWORD RESET ---
+class ForgotPasswordRequest(BaseModel):
+    email: str
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str
+
+@router.post("/forgot-password")
+def forgot_password(request: ForgotPasswordRequest, session: Session = Depends(get_session)):
+    user = session.exec(select(User).where(User.email == request.email)).first()
+    if not user:
+        # Don't reveal if user exists or not for security, but for MVP we can just return success
+        return {"message": "If that email exists, we sent a reset link."}
+    
+    # Generate a reset token (reusing access token logic for MVP, but with shorter expiry)
+    reset_token = create_access_token(data={"sub": user.email, "type": "reset"}, expires_delta=timedelta(minutes=15))
+    
+    # MOCK EMAIL SENDING
+    print(f"\n==================================================")
+    print(f"📧 EMAIL TO: {user.email}")
+    print(f"🔗 RESET LINK: http://localhost:3000/reset-password?token={reset_token}")
+    print(f"==================================================\n")
+    
+    return {"message": "Password reset link sent (check server console)."}
+
+@router.post("/reset-password")
+def reset_password(request: ResetPasswordRequest, session: Session = Depends(get_session)):
+    try:
+        payload = jwt.decode(request.token, SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        token_type: str = payload.get("type")
+        
+        if email is None or token_type != "reset":
+            raise HTTPException(status_code=400, detail="Invalid token")
+            
+    except JWTError:
+        raise HTTPException(status_code=400, detail="Invalid or expired token")
+        
+    user = session.exec(select(User).where(User.email == email)).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+        
+    # Update password
+    user.hashed_password = get_password_hash(request.new_password)
+    session.add(user)
+    session.commit()
+    
+    return {"message": "Password updated successfully"}

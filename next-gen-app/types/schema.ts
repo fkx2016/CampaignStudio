@@ -22,8 +22,8 @@ export const CampaignPostSchema = z.object({
     // Metadata
     kc_approval: z.string().optional(),
     target_platforms: z.array(z.string()).optional(),
-    platform_post_ids: z.array(z.record(z.any())).optional(),
-    performance_metrics: z.record(z.any()).optional(),
+    platform_post_ids: z.array(z.record(z.string(), z.any())).optional(),
+    performance_metrics: z.record(z.string(), z.any()).optional(),
 
     // AI Prompts
     image_prompt: z.string().optional(),

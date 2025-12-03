@@ -1,0 +1,10 @@
+# Ignore git and dependency directories
+.git
+.gitignore
+venv
+node_modules
+next-gen-app/node_modules
+backend/__pycache__
+*.pyc
+.env
+.DS_Store

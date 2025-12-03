@@ -3,16 +3,18 @@
 import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import Link from "next/link";
-import { Loader2, ShieldCheck } from "lucide-react";
+import { Loader2, ShieldCheck, Eye, EyeOff } from "lucide-react";
 
 export default function LoginPage() {
     const { login } = useAuth();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
 
     const handleSubmit = async (e: React.FormEvent) => {
+        // ... (existing submit logic) ...
         e.preventDefault();
         setLoading(true);
         setError("");
@@ -22,7 +24,7 @@ export default function LoginPage() {
             formData.append("username", email);
             formData.append("password", password);
 
-            const res = await fetch("http://localhost:8001/token", {
+            const res = await fetch("http://127.0.0.1:8001/token", {
                 method: "POST",
                 body: formData,
             });
@@ -72,14 +74,28 @@ export default function LoginPage() {
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
-                        <input
-                            type="password"
-                            required
-                            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
-                            placeholder="••••••••"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                        />
+                        <div className="relative">
+                            <input
+                                type={showPassword ? "text" : "password"}
+                                required
+                                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all pr-10"
+                                placeholder="••••••••"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                            >
+                                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            </button>
+                        </div>
+                        <div className="text-right mt-1">
+                            <Link href="/forgot-password" className="text-xs text-blue-600 hover:underline">
+                                Forgot Password?
+                            </Link>
+                        </div>
                     </div>
 
                     <button
