@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlmodel import Session, select
 
 from .database import create_db_and_tables, get_session
-from .models import CampaignPost, Platform
+from .models import CampaignPost, Platform, WorkspaceSettings
 
 app = FastAPI()
 
@@ -57,16 +57,54 @@ def seed_platforms():
             session.commit()
             print("✅ Platforms Seeded!")
 
+def seed_settings():
+    with Session(get_session().__next__().bind) as session:
+        existing = session.exec(select(WorkspaceSettings)).first()
+        if not existing:
+            print("🌱 Seeding Settings...")
+            settings = WorkspaceSettings(id=1) # Default values from model
+            session.add(settings)
+            session.commit()
+            print("✅ Settings Seeded!")
+
 @app.on_event("startup")
 def on_startup():
     create_db_and_tables()
     seed_platforms()
+    seed_settings()
 
 @app.get("/")
 def read_root():
     return {"message": "Campaign Poster API v2.0 is Live"}
 
 # ... (Existing Post Routes) ...
+
+# --- SETTINGS ROUTES ---
+
+@app.get("/api/settings", response_model=WorkspaceSettings)
+def read_settings(session: Session = Depends(get_session)):
+    settings = session.exec(select(WorkspaceSettings)).first()
+    if not settings:
+        # Fallback if seed failed for some reason
+        return WorkspaceSettings(id=1)
+    return settings
+
+@app.put("/api/settings", response_model=WorkspaceSettings)
+def update_settings(settings_data: WorkspaceSettings, session: Session = Depends(get_session)):
+    settings = session.exec(select(WorkspaceSettings)).first()
+    if not settings:
+        settings = WorkspaceSettings(id=1)
+        session.add(settings)
+    
+    s_dict = settings_data.dict(exclude_unset=True)
+    for key, value in s_dict.items():
+        if key != "id": # Protect ID
+            setattr(settings, key, value)
+            
+    session.add(settings)
+    session.commit()
+    session.refresh(settings)
+    return settings
 
 # --- PLATFORM ROUTES ---
 

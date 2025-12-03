@@ -17,21 +17,39 @@ interface Platform {
 
 export default function SettingsModal({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
     const [platforms, setPlatforms] = useState<Platform[]>([]);
+    const [settings, setSettings] = useState<{ default_overlay_text: string, default_qr_url: string } | null>(null);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
 
-    // Fetch Platforms
+    // Fetch Platforms & Settings
     useEffect(() => {
         if (open) {
-            fetch("http://localhost:8001/api/platforms")
-                .then((res) => res.json())
-                .then((data) => {
-                    setPlatforms(data);
-                    setLoading(false);
-                })
-                .catch((err) => console.error("Failed to fetch platforms", err));
+            setLoading(true);
+            Promise.all([
+                fetch("http://localhost:8001/api/platforms").then(res => res.json()),
+                fetch("http://localhost:8001/api/settings").then(res => res.json())
+            ]).then(([platformsData, settingsData]) => {
+                setPlatforms(platformsData);
+                setSettings(settingsData);
+                setLoading(false);
+            }).catch(err => console.error("Failed to fetch data", err));
         }
     }, [open]);
+
+    // Update Global Settings
+    const updateGlobalSetting = async (field: string, value: string) => {
+        if (!settings) return;
+        try {
+            await fetch("http://localhost:8001/api/settings", {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ ...settings, [field]: value }),
+            });
+            setSettings({ ...settings, [field]: value });
+        } catch (err) {
+            console.error("Failed to update settings", err);
+        }
+    };
 
     // Toggle Active Status
     const togglePlatform = async (id: number, currentStatus: boolean) => {
@@ -85,6 +103,30 @@ export default function SettingsModal({ open, onOpenChange }: { open: boolean; o
                         <X className="w-6 h-6" />
                     </button>
                 </div>
+
+                {/* GLOBAL DEFAULTS */}
+                {settings && (
+                    <div className="px-6 py-4 bg-slate-50 border-b border-slate-200 grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Default Overlay Text</label>
+                            <input
+                                className="w-full h-9 px-3 border border-slate-300 rounded-md text-sm"
+                                placeholder="e.g. AppleSux"
+                                defaultValue={settings.default_overlay_text}
+                                onBlur={(e) => updateGlobalSetting("default_overlay_text", e.target.value)}
+                            />
+                        </div>
+                        <div>
+                            <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Default QR URL</label>
+                            <input
+                                className="w-full h-9 px-3 border border-slate-300 rounded-md text-sm"
+                                placeholder="e.g. https://mysite.com"
+                                defaultValue={settings.default_qr_url}
+                                onBlur={(e) => updateGlobalSetting("default_qr_url", e.target.value)}
+                            />
+                        </div>
+                    </div>
+                )}
 
                 {/* SEARCH */}
                 <div className="px-6 py-4 bg-white border-b border-slate-200">

@@ -20,6 +20,17 @@ export default function MediaEditor({ imageUrl, onSave, onCancel }: MediaEditorP
     const [inputText, setInputText] = useState("");
     const [inputQrUrl, setInputQrUrl] = useState("");
 
+    // Fetch Global Defaults
+    useEffect(() => {
+        fetch("http://localhost:8001/api/settings")
+            .then(res => res.json())
+            .then(data => {
+                if (data.default_overlay_text) setInputText(data.default_overlay_text);
+                if (data.default_qr_url) setInputQrUrl(data.default_qr_url);
+            })
+            .catch(err => console.error("Failed to load defaults", err));
+    }, []);
+
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
 

@@ -46,3 +46,9 @@ class Platform(SQLModel, table=True):
     default_hashtags: Optional[str] = "" # e.g. "#tech #news"
     post_suffix: Optional[str] = "" # e.g. "Link in bio 👇"
 
+class WorkspaceSettings(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    default_overlay_text: str = Field(default="AppleSux")
+    default_qr_url: str = Field(default="https://fkxx.substack.com")
+
+
