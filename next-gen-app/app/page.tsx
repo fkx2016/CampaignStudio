@@ -10,12 +10,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Copy, ExternalLink, RefreshCw, CheckCircle, ChevronLeft, ChevronRight, Save } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ModeSwitcher from "@/components/mode-switcher/ModeSwitcher";
+import MusicPlayer from "@/components/MusicPlayer"; // Import the new component
 
 export default function CampaignDashboard() {
   const [posts, setPosts] = useState<CampaignPost[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [currentMode, setCurrentMode] = useState("ebeg"); // Default mode
+  const [showMusic, setShowMusic] = useState(false); // State for Music Player
 
   // EDIT STATE
   const [editedTitle, setEditedTitle] = useState("");
@@ -296,7 +298,7 @@ export default function CampaignDashboard() {
                 <h3 className="text-xs font-bold text-indigo-400 uppercase tracking-wider mb-2">Studio Atmosphere</h3>
                 <Button
                   className="w-full bg-white text-indigo-600 hover:bg-indigo-50 border border-indigo-200 shadow-sm"
-                  onClick={() => window.open("https://www.youtube.com/watch?v=DlrUlJIRjsg", "_blank")}
+                  onClick={() => setShowMusic(true)}
                 >
                   🎧 Play Focus Music
                 </Button>
@@ -522,6 +524,9 @@ export default function CampaignDashboard() {
         </div>
 
       </div>
+
+      {/* Floating Music Player */}
+      {showMusic && <MusicPlayer onClose={() => setShowMusic(false)} />}
     </div>
   );
 }
