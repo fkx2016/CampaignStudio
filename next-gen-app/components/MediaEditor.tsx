@@ -111,11 +111,11 @@ export default function MediaEditor({ imageUrl, onSave, onCancel }: MediaEditorP
     // ADD HANDLERS
     const addTextOverlay = () => {
         if (!containerRef.current) return;
-        const { width, height } = containerRef.current.getBoundingClientRect();
+        const rect = containerRef.current.getBoundingClientRect();
         setTextOverlay({
             text: inputText || "Hello World",
-            x: width / 2 - 100, // Approx center
-            y: height * 0.2, // Top area
+            x: rect.left + (rect.width / 2) - 100, // Center relative to WINDOW
+            y: rect.top + (rect.height * 0.2), // Top area relative to WINDOW
             color: "white",
             size: 40
         });
@@ -123,11 +123,11 @@ export default function MediaEditor({ imageUrl, onSave, onCancel }: MediaEditorP
 
     const addQrOverlay = () => {
         if (!containerRef.current) return;
-        const { width, height } = containerRef.current.getBoundingClientRect();
+        const rect = containerRef.current.getBoundingClientRect();
         setQrOverlay({
             url: inputQrUrl || "https://example.com",
-            x: width / 2 - 50, // Center
-            y: height * 0.6, // Bottom area
+            x: rect.left + (rect.width / 2) - 50, // Center relative to WINDOW
+            y: rect.top + (rect.height * 0.6), // Bottom area relative to WINDOW
             size: 100
         });
     };
