@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { CampaignPost } from "@/types/schema";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -160,6 +160,30 @@ export default function CampaignDashboard() {
           console.error("Ingest error", err);
         }
       }
+    }
+  };
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    console.log("File selected:", file.name);
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await fetch("http://localhost:8001/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      setEditedImageUrl(data.url);
+      alert("Image uploaded successfully!");
+    } catch (err) {
+      console.error("Upload failed", err);
+      alert("Upload failed.");
     }
   };
 
@@ -433,6 +457,15 @@ export default function CampaignDashboard() {
                   <span className="text-xs text-slate-400">1200x630px</span>
                 </div>
 
+                {/* Hidden File Input */}
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  className="hidden"
+                  onChange={handleFileSelect}
+                  accept="image/*"
+                />
+
                 {editedImageUrl && editedImageUrl.length > 5 ? (
                   <div
                     className="bg-slate-100 rounded-lg border border-slate-200 overflow-hidden relative group focus:ring-2 focus:ring-blue-500 focus:outline-none"
@@ -454,8 +487,9 @@ export default function CampaignDashboard() {
                         (e.target as HTMLImageElement).parentElement?.classList.add('bg-red-50');
                       }}
                     />
-                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Button variant="secondary" size="sm" onClick={() => setEditedImageUrl("")}>Remove Image</Button>
+                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity gap-2">
+                      <Button variant="secondary" size="sm" onClick={() => fileInputRef.current?.click()}>Change Image</Button>
+                      <Button variant="destructive" size="sm" onClick={() => setEditedImageUrl("")}>Remove</Button>
                     </div>
                   </div>
                 ) : (
@@ -463,10 +497,11 @@ export default function CampaignDashboard() {
                     className="aspect-video bg-slate-100 rounded-lg border-2 border-dashed border-slate-300 flex items-center justify-center text-slate-400 cursor-pointer hover:bg-slate-200 hover:border-slate-400 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     tabIndex={0}
                     onPaste={handlePaste}
+                    onClick={() => fileInputRef.current?.click()}
                   >
                     <div className="text-center pointer-events-none">
                       <div className="mb-2 text-2xl">🖼️</div>
-                      <span className="text-sm font-medium">Click & Paste Image (Ctrl+V)</span>
+                      <span className="text-sm font-medium">Click to Browse or Paste (Ctrl+V)</span>
                     </div>
                   </div>
                 )}
