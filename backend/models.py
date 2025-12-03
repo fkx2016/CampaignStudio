@@ -32,3 +32,17 @@ class CampaignPost(SQLModel, table=True):
     # AI Prompts
     image_prompt: Optional[str] = ""
     video_prompt: Optional[str] = ""
+
+class Platform(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    name: str
+    slug: str = Field(index=True, unique=True) # e.g. 'x', 'linkedin', 'instagram'
+    base_url: str # The URL to open for posting
+    icon: str # Emoji or Lucide icon name
+    char_limit: int = Field(default=280)
+    is_active: bool = Field(default=True)
+    
+    # Customization
+    default_hashtags: Optional[str] = "" # e.g. "#tech #news"
+    post_suffix: Optional[str] = "" # e.g. "Link in bio 👇"
+

@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import ModeSwitcher from "@/components/mode-switcher/ModeSwitcher";
 import MusicPlayer from "@/components/MusicPlayer";
 import MediaEditor from "@/components/MediaEditor";
+import SettingsModal from "@/components/settings/SettingsModal";
 // Removed Button/Slider imports as we use native/inline for now to avoid errors
 
 export default function CampaignDashboard() {
@@ -20,6 +21,7 @@ export default function CampaignDashboard() {
   const [loading, setLoading] = useState(true);
   const [currentMode, setCurrentMode] = useState("ebeg"); // Default mode
   const [showMusic, setShowMusic] = useState(false); // State for Music Player
+  const [showSettings, setShowSettings] = useState(false); // State for Settings
   const [isEditingMedia, setIsEditingMedia] = useState(false); // State for Media Editor
 
   // EDIT STATE
@@ -311,7 +313,7 @@ export default function CampaignDashboard() {
               <div className="h-px bg-slate-100 my-2"></div>
 
               {/* Settings / Meta Actions */}
-              <Button variant="secondary" className="w-full justify-start" onClick={() => alert("Settings coming soon!")}>
+              <Button variant="secondary" className="w-full justify-start" onClick={() => setShowSettings(true)}>
                 ⚙️ Workspace Settings
               </Button>
               <Button variant="secondary" className="w-full justify-start" onClick={() => alert("Analytics coming soon!")}>
@@ -587,6 +589,9 @@ export default function CampaignDashboard() {
 
       {/* Floating Music Player */}
       {showMusic && <MusicPlayer onClose={() => setShowMusic(false)} />}
+
+      {/* Settings Modal */}
+      <SettingsModal open={showSettings} onOpenChange={setShowSettings} />
     </div>
   );
 }
