@@ -23,6 +23,22 @@ export default function CampaignDashboard() {
   const [showMusic, setShowMusic] = useState(false); // State for Music Player
   const [showSettings, setShowSettings] = useState(false); // State for Settings
   const [isEditingMedia, setIsEditingMedia] = useState(false); // State for Media Editor
+  const [activePlatforms, setActivePlatforms] = useState<any[]>([]);
+
+  // FETCH PLATFORMS
+  const fetchActivePlatforms = async () => {
+    try {
+      const res = await fetch("http://localhost:8001/api/platforms");
+      const data = await res.json();
+      setActivePlatforms(data.filter((p: any) => p.is_active).sort((a: any, b: any) => a.id - b.id));
+    } catch (err) {
+      console.error("Failed to fetch platforms", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchActivePlatforms();
+  }, [showSettings]); // Refetch when settings close
 
   // EDIT STATE
   const [editedTitle, setEditedTitle] = useState("");
@@ -404,41 +420,53 @@ export default function CampaignDashboard() {
               {/* Platform Previews (Tabs) */}
               <div className="pt-6 border-t border-slate-100">
                 <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 block">Platform Preview</label>
-                <Tabs defaultValue="substack" className="w-full">
-                  <TabsList className="grid w-full grid-cols-3 bg-slate-100 p-1 rounded-lg">
-                    <TabsTrigger value="substack" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">Substack</TabsTrigger>
-                    <TabsTrigger value="linkedin" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">LinkedIn</TabsTrigger>
-                    <TabsTrigger value="x" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">X</TabsTrigger>
-                  </TabsList>
 
-                  {/* Tab Contents (Simplified for brevity, same logic as before) */}
-                  <TabsContent value="substack" className="mt-4">
-                    <div className="p-4 bg-white rounded-lg border border-slate-200 text-sm text-slate-600 space-y-2">
-                      <h3 className="font-bold text-slate-900">{editedTitle || "Untitled"}</h3>
-                      <p className="line-clamp-3">{editedHook || "No content..."}</p>
-                      <Button size="sm" variant="outline" className="w-full mt-2 text-xs" onClick={() => window.open("https://substack.com/dashboard/post/new", "_blank")}>
-                        Open Substack <ExternalLink className="w-3 h-3 ml-2" />
-                      </Button>
-                    </div>
-                  </TabsContent>
-                  <TabsContent value="linkedin" className="mt-4">
-                    <div className="p-4 bg-white rounded-lg border border-slate-200 text-sm text-slate-600 space-y-2">
-                      <p className="line-clamp-4">{editedHook || "No content..."}</p>
-                      <p className="text-blue-600 text-xs">#Campaign #Update</p>
-                      <Button size="sm" variant="outline" className="w-full mt-2 text-xs" onClick={() => window.open("https://www.linkedin.com/feed/", "_blank")}>
-                        Open LinkedIn <ExternalLink className="w-3 h-3 ml-2" />
-                      </Button>
-                    </div>
-                  </TabsContent>
-                  <TabsContent value="x" className="mt-4">
-                    <div className="p-4 bg-white rounded-lg border border-slate-200 text-sm text-slate-600 space-y-2">
-                      <p className="line-clamp-3">{editedHook?.substring(0, 280) || "No content..."}</p>
-                      <Button size="sm" variant="outline" className="w-full mt-2 text-xs" onClick={() => window.open("https://twitter.com/compose/tweet", "_blank")}>
-                        Open X <ExternalLink className="w-3 h-3 ml-2" />
-                      </Button>
-                    </div>
-                  </TabsContent>
-                </Tabs>
+                {activePlatforms.length > 0 ? (
+                  <Tabs defaultValue={activePlatforms[0].slug} className="w-full">
+                    <TabsList className="flex flex-wrap h-auto gap-2 bg-slate-100 p-2 rounded-lg justify-start">
+                      {activePlatforms.map((p) => (
+                        <TabsTrigger
+                          key={p.id}
+                          value={p.slug}
+                          className="data-[state=active]:bg-white data-[state=active]:shadow-sm px-3 py-1 text-xs"
+                        >
+                          {p.name}
+                        </TabsTrigger>
+                      ))}
+                    </TabsList>
+
+                    {activePlatforms.map((p) => (
+                      <TabsContent key={p.id} value={p.slug} className="mt-4">
+                        <div className="p-4 bg-white rounded-lg border border-slate-200 text-sm text-slate-600 space-y-2">
+                          <div className="flex justify-between items-center mb-2">
+                            <h3 className="font-bold text-slate-900">{p.name} Preview</h3>
+                            <span className="text-xs text-slate-400">{editedHook.length} / {p.char_limit} chars</span>
+                          </div>
+
+                          {/* Preview Content */}
+                          <p className={cn("whitespace-pre-wrap", editedHook.length > p.char_limit ? "text-red-600" : "")}>
+                            {editedHook.substring(0, p.char_limit) || "No content..."}
+                          </p>
+
+                          {/* Suffix/Hashtags */}
+                          {(p.default_hashtags || p.post_suffix) && (
+                            <div className="pt-2 text-blue-600 text-xs">
+                              {p.default_hashtags} {p.post_suffix}
+                            </div>
+                          )}
+
+                          <Button size="sm" variant="outline" className="w-full mt-4 text-xs" onClick={() => window.open(p.base_url, "_blank")}>
+                            Open {p.name} <ExternalLink className="w-3 h-3 ml-2" />
+                          </Button>
+                        </div>
+                      </TabsContent>
+                    ))}
+                  </Tabs>
+                ) : (
+                  <div className="text-center py-8 text-slate-400 text-sm">
+                    No active platforms. Check Settings ⚙️
+                  </div>
+                )}
               </div>
 
             </CardContent>

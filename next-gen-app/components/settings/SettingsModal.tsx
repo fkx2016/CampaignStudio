@@ -17,7 +17,7 @@ interface Platform {
 
 export default function SettingsModal({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
     const [platforms, setPlatforms] = useState<Platform[]>([]);
-    const [settings, setSettings] = useState<{ default_overlay_text: string, default_qr_url: string } | null>(null);
+    const [settings, setSettings] = useState<{ default_overlay_text: string, default_qr_url: string, default_music_url: string } | null>(null);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
 
@@ -83,7 +83,9 @@ export default function SettingsModal({ open, onOpenChange }: { open: boolean; o
         }
     };
 
-    const filteredPlatforms = platforms.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
+    const filteredPlatforms = platforms
+        .filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()))
+        .sort((a, b) => a.id - b.id);
 
     if (!open) return null;
 
@@ -125,6 +127,15 @@ export default function SettingsModal({ open, onOpenChange }: { open: boolean; o
                                 onBlur={(e) => updateGlobalSetting("default_qr_url", e.target.value)}
                             />
                         </div>
+                        <div className="col-span-2">
+                            <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Music Player URL (Embed)</label>
+                            <input
+                                className="w-full h-9 px-3 border border-slate-300 rounded-md text-sm"
+                                placeholder="e.g. https://www.youtube.com/embed/..."
+                                defaultValue={settings.default_music_url}
+                                onBlur={(e) => updateGlobalSetting("default_music_url", e.target.value)}
+                            />
+                        </div>
                     </div>
                 )}
 
@@ -148,7 +159,7 @@ export default function SettingsModal({ open, onOpenChange }: { open: boolean; o
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             {filteredPlatforms.map((platform) => (
-                                <div key={platform.id} className={`p-4 rounded-lg border transition-all duration-200 ${platform.is_active ? 'bg-white border-blue-200 shadow-md ring-1 ring-blue-100' : 'bg-slate-100 border-slate-200 opacity-60 grayscale'}`}>
+                                <div key={platform.id} className={`p-4 rounded-lg border transition-all duration-200 ${platform.is_active ? 'bg-white border-blue-200 shadow-md ring-1 ring-blue-100' : 'bg-slate-100 border-slate-200 opacity-80'}`}>
 
                                     {/* Card Header */}
                                     <div className="flex justify-between items-start mb-4">
@@ -179,7 +190,7 @@ export default function SettingsModal({ open, onOpenChange }: { open: boolean; o
                                                 </label>
                                                 <input
                                                     className="w-full h-8 text-xs px-2 border border-slate-200 rounded focus:border-blue-500 focus:outline-none"
-                                                    placeholder="#campaign #news"
+                                                    placeholder="Example: #campaign #news"
                                                     defaultValue={platform.default_hashtags}
                                                     onBlur={(e) => updatePlatformField(platform.id, 'default_hashtags', e.target.value)}
                                                 />
@@ -190,7 +201,7 @@ export default function SettingsModal({ open, onOpenChange }: { open: boolean; o
                                                 </label>
                                                 <input
                                                     className="w-full h-8 text-xs px-2 border border-slate-200 rounded focus:border-blue-500 focus:outline-none"
-                                                    placeholder="Link in bio 👇"
+                                                    placeholder="Example: Link in bio 👇"
                                                     defaultValue={platform.post_suffix}
                                                     onBlur={(e) => updatePlatformField(platform.id, 'post_suffix', e.target.value)}
                                                 />

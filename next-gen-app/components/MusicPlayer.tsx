@@ -1,12 +1,44 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Draggable from "@/components/ui/Draggable";
 import { X, Minimize2, Maximize2, Music } from "lucide-react";
 // Removed Button import as we use native buttons for the player controls
 
 export default function MusicPlayer({ onClose }: { onClose: () => void }) {
     const [isMinimized, setIsMinimized] = useState(false);
+    const [musicUrl, setMusicUrl] = useState("https://www.youtube.com/embed/jfKfPfyJRdk?autoplay=1"); // Default fallback
+
+    // Helper to convert standard YouTube URL to Embed URL
+    const getEmbedUrl = (url: string) => {
+        if (!url) return "";
+        if (url.includes("/embed/")) return url; // Already correct
+
+        // Handle standard watch?v= format
+        const videoIdMatch = url.match(/(?:v=|\/)([\w-]{11})(?:\?|&|\/|$)/);
+        if (videoIdMatch && videoIdMatch[1]) {
+            return `https://www.youtube.com/embed/${videoIdMatch[1]}?autoplay=1`;
+        }
+
+        // Handle youtu.be short links
+        if (url.includes("youtu.be")) {
+            const id = url.split("/").pop()?.split("?")[0];
+            if (id) return `https://www.youtube.com/embed/${id}?autoplay=1`;
+        }
+
+        return url; // Return original if we can't parse (might be non-YT)
+    };
+
+    useEffect(() => {
+        fetch("http://localhost:8001/api/settings")
+            .then(res => res.json())
+            .then(data => {
+                if (data.default_music_url) {
+                    setMusicUrl(getEmbedUrl(data.default_music_url));
+                }
+            })
+            .catch(err => console.error("Failed to fetch music settings", err));
+    }, []);
 
     return (
         <Draggable initialPos={{ x: window.innerWidth - 380, y: window.innerHeight - 280 }} className="shadow-2xl rounded-lg overflow-hidden border border-slate-200 bg-white w-[360px]">
@@ -40,7 +72,7 @@ export default function MusicPlayer({ onClose }: { onClose: () => void }) {
                     <iframe
                         width="100%"
                         height="200"
-                        src="https://www.youtube.com/embed/DlrUlJIRjsg?autoplay=1&controls=1"
+                        src={musicUrl}
                         title="Focus Music"
                         frameBorder="0"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"

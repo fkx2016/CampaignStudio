@@ -50,5 +50,6 @@ class WorkspaceSettings(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     default_overlay_text: str = Field(default="AppleSux")
     default_qr_url: str = Field(default="https://fkxx.substack.com")
+    default_music_url: str = Field(default="https://www.youtube.com/embed/jfKfPfyJRdk?autoplay=1")
 
 
