@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
 import { CampaignPost } from "@/types/schema";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -16,9 +18,19 @@ import SettingsModal from "@/components/settings/SettingsModal";
 // Removed Button/Slider imports as we use native/inline for now to avoid errors
 
 export default function CampaignDashboard() {
+  const { user, loading: authLoading } = useAuth();
+  const router = useRouter();
+
+  // Protect Route
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push("/login");
+    }
+  }, [user, authLoading, router]);
+
   const [posts, setPosts] = useState<CampaignPost[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const [postsLoading, setPostsLoading] = useState(true); // Renamed to avoid conflict with authLoading
   const [currentMode, setCurrentMode] = useState("ebeg"); // Default mode
   const [showMusic, setShowMusic] = useState(false); // State for Music Player
   const [showSettings, setShowSettings] = useState(false); // State for Settings
@@ -49,16 +61,16 @@ export default function CampaignDashboard() {
   // FETCH DATA FROM BACKEND
   useEffect(() => {
     async function fetchPosts() {
-      setLoading(true);
+      setPostsLoading(true);
       try {
         const res = await fetch(`http://localhost:8001/api/posts?mode=${currentMode}`);
         const data = await res.json();
         setPosts(data);
         setCurrentIndex(0); // Reset index on mode change
-        setLoading(false);
+        setPostsLoading(false);
       } catch (error) {
         console.error("Failed to fetch posts:", error);
-        setLoading(false);
+        setPostsLoading(false);
       }
     }
     fetchPosts();
@@ -239,7 +251,7 @@ export default function CampaignDashboard() {
     }
   };
 
-  if (loading) return <div className="p-10 text-center">Loading Campaign Data...</div>;
+  if (authLoading || postsLoading) return <div className="p-10 text-center">Loading Campaign Data...</div>;
 
   // EMPTY STATE (When no posts exist for this mode)
   if (!post) {

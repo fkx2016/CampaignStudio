@@ -53,3 +53,30 @@ class WorkspaceSettings(SQLModel, table=True):
     default_music_url: str = Field(default="https://www.youtube.com/embed/jfKfPfyJRdk?autoplay=1")
 
 
+
+class User(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    email: str = Field(index=True, unique=True)
+    hashed_password: str
+    full_name: Optional[str] = None
+    is_active: bool = Field(default=True)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+class Mode(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    name: str  # "Political", "Donation", etc.
+    slug: str = Field(index=True, unique=True) # "political", "donation"
+    description: str  # User-facing explanation
+    
+    # AI Guidance
+    tone_guidelines: str = Field(default="") # "Provocative but not offensive. Question assumptions."
+    structure_template: str = Field(default="") # "Hook → Evidence → Question → CTA"
+    example_prompts: str = Field(default="[]") # JSON array of example good posts
+    
+    # Constraints
+    preferred_platforms: str = Field(default="[]") # JSON array of platform slugs
+    optimal_length_range: str = Field(default="") # "100-280 chars" or "500-1000 words"
+    
+    # Metadata
+    is_active: bool = Field(default=True)
+    created_at: datetime = Field(default_factory=datetime.utcnow)

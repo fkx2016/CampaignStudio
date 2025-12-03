@@ -4,9 +4,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlmodel import Session, select
 
 from .database import create_db_and_tables, get_session
-from .models import CampaignPost, Platform, WorkspaceSettings
+from .models import CampaignPost, Platform, WorkspaceSettings, Mode
+from . import auth
 
 app = FastAPI()
+
+# Include Auth Router
+app.include_router(auth.router)
 
 # Allow Frontend to talk to Backend
 app.add_middleware(
@@ -46,6 +50,51 @@ INITIAL_PLATFORMS = [
     {"name": "Ghost", "slug": "ghost", "base_url": "https://ghost.org/", "icon": "Ghost", "char_limit": 100000},
 ]
 
+INITIAL_MODES = [
+    {
+        "name": "Donation / E-Begging",
+        "slug": "donation",
+        "description": "Empathetic storytelling with clear financial asks.",
+        "tone_guidelines": "Vulnerable, urgent, grateful. Focus on the 'why'.",
+        "structure_template": "Hook (The Need) -> Story (The Context) -> Ask (The Solution) -> Gratitude",
+    },
+    {
+        "name": "Political / Activism",
+        "slug": "political",
+        "description": "Provocative engagement and Socratic questioning.",
+        "tone_guidelines": "Bold, questioning, rallying. Challenge the status quo.",
+        "structure_template": "Hook (The Outrage) -> Evidence (The Facts) -> Question (The Socratic Turn) -> Call to Action",
+    },
+    {
+        "name": "Selling / Commerce",
+        "slug": "selling",
+        "description": "Benefit-driven copy optimized for conversion.",
+        "tone_guidelines": "Confident, value-focused, clear. Focus on benefits, not features.",
+        "structure_template": "Hook (The Problem) -> Solution (The Product) -> Proof (Social/Data) -> Offer (CTA)",
+    },
+    {
+        "name": "Education / Authority",
+        "slug": "education",
+        "description": "High-value content that builds trust and authority.",
+        "tone_guidelines": "Helpful, knowledgeable, clear. Teach, don't preach.",
+        "structure_template": "Hook (The Insight) -> Explanation (The How-To) -> Example (The Proof) -> Summary",
+    },
+    {
+        "name": "Promotion / Hype",
+        "slug": "promotion",
+        "description": "Excitement-building for events or launches.",
+        "tone_guidelines": "High energy, exclusive, urgent. Use FOMO.",
+        "structure_template": "Hook (The Big News) -> Details (The What/When) -> Scarcity (The Why Now) -> CTA",
+    },
+    {
+        "name": "Awareness / Viral",
+        "slug": "awareness",
+        "description": "Broad appeal content designed for maximum sharing.",
+        "tone_guidelines": "Relatable, emotional, surprising. Aim for the 'Whoa' factor.",
+        "structure_template": "Hook (The Surprise) -> Story (The Emotion) -> Twist (The Insight) -> Share Ask",
+    },
+]
+
 def seed_platforms():
     with Session(get_session().__next__().bind) as session:
         existing = session.exec(select(Platform)).first()
@@ -56,6 +105,17 @@ def seed_platforms():
                 session.add(platform)
             session.commit()
             print("✅ Platforms Seeded!")
+
+def seed_modes():
+    with Session(get_session().__next__().bind) as session:
+        existing = session.exec(select(Mode)).first()
+        if not existing:
+            print("🌱 Seeding Modes...")
+            for m_data in INITIAL_MODES:
+                mode = Mode(**m_data)
+                session.add(mode)
+            session.commit()
+            print("✅ Modes Seeded!")
 
 def seed_settings():
     with Session(get_session().__next__().bind) as session:
@@ -71,6 +131,7 @@ def seed_settings():
 def on_startup():
     create_db_and_tables()
     seed_platforms()
+    seed_modes()
     seed_settings()
 
 @app.get("/")
@@ -125,7 +186,14 @@ def update_platform(platform_id: int, platform_data: Platform, session: Session 
     session.add(platform)
     session.commit()
     session.refresh(platform)
+    session.refresh(platform)
     return platform
+
+# --- MODE ROUTES ---
+
+@app.get("/api/modes", response_model=List[Mode])
+def read_modes(session: Session = Depends(get_session)):
+    return session.exec(select(Mode)).all()
 
 # ... (Existing Upload Routes) ...
 
