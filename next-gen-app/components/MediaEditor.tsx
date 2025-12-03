@@ -108,6 +108,30 @@ export default function MediaEditor({ imageUrl, onSave, onCancel }: MediaEditorP
         }, "image/png");
     };
 
+    // ADD HANDLERS
+    const addTextOverlay = () => {
+        if (!containerRef.current) return;
+        const { width, height } = containerRef.current.getBoundingClientRect();
+        setTextOverlay({
+            text: inputText || "Hello World",
+            x: width / 2 - 100, // Approx center
+            y: height * 0.2, // Top area
+            color: "white",
+            size: 40
+        });
+    };
+
+    const addQrOverlay = () => {
+        if (!containerRef.current) return;
+        const { width, height } = containerRef.current.getBoundingClientRect();
+        setQrOverlay({
+            url: inputQrUrl || "https://example.com",
+            x: width / 2 - 50, // Center
+            y: height * 0.6, // Bottom area
+            size: 100
+        });
+    };
+
     return (
         <div className="flex flex-col h-full">
             {/* TOOLBAR */}
@@ -123,7 +147,7 @@ export default function MediaEditor({ imageUrl, onSave, onCancel }: MediaEditorP
                     />
                     <button
                         className="p-2 bg-white border border-slate-300 rounded hover:bg-slate-50"
-                        onClick={() => setTextOverlay({ text: inputText || "Hello World", x: 50, y: 50, color: "white", size: 40 })}
+                        onClick={addTextOverlay}
                     >
                         <Type className="w-4 h-4" />
                     </button>
@@ -141,7 +165,7 @@ export default function MediaEditor({ imageUrl, onSave, onCancel }: MediaEditorP
                     />
                     <button
                         className="p-2 bg-white border border-slate-300 rounded hover:bg-slate-50"
-                        onClick={() => setQrOverlay({ url: inputQrUrl || "https://example.com", x: 100, y: 100, size: 100 })}
+                        onClick={addQrOverlay}
                     >
                         <QrCode className="w-4 h-4" />
                     </button>

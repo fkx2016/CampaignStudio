@@ -343,7 +343,7 @@ export default function CampaignDashboard() {
             <CardHeader className="flex flex-row items-center justify-between bg-white border-b border-slate-100 sticky top-0 z-10">
               <div className="flex items-center gap-2">
                 <span className="text-2xl">✍️</span>
-                <CardTitle className="text-lg text-slate-800">Editor Studio</CardTitle>
+                <CardTitle className="text-lg text-slate-800">Content Studio</CardTitle>
               </div>
               <div className="flex gap-2">
                 <Badge variant={post.status === "Posted" ? "success" : "warning"}>
