@@ -406,7 +406,48 @@ export default function CampaignDashboard() {
                   disabled={isSaving}
                   style={{ backgroundColor: "#16a34a" }}
                 >
-                  <Save className="w-4 h-4 mr-2" /> {isSaving ? "Saving..." : "Save"}
+                  <Save className="w-4 h-4 mr-2" /> {isSaving ? "Saving..." : "Save Draft"}
+                </Button>
+                <Button
+                  size="sm"
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold border-transparent shadow-sm ml-2"
+                  onClick={async () => {
+                    if (confirm("Are you sure you want to finalize this post? This will mark it as 'Posted'.")) {
+                      // 1. Update Status locally
+                      const updatedPost = { ...post, status: "Posted" as const };
+                      // 2. Save via API (re-using logic but forcing status)
+                      setIsSaving(true);
+                      try {
+                        const payload = {
+                          ...updatedPost,
+                          title: editedTitle,
+                          hook_text: editedHook,
+                          media_image_url: editedImageUrl,
+                          mode: currentMode
+                        };
+                        const res = await fetch(`http://localhost:8001/api/posts/${post.id}`, {
+                          method: "PUT",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify(payload),
+                        });
+                        if (res.ok) {
+                          const savedData = await res.json();
+                          const newPosts = [...posts];
+                          newPosts[currentIndex] = savedData;
+                          setPosts(newPosts);
+                          alert("Post Accepted & Finalized! 🚀");
+                        }
+                      } catch (e) {
+                        console.error(e);
+                        alert("Error finalizing post.");
+                      } finally {
+                        setIsSaving(false);
+                      }
+                    }
+                  }}
+                  disabled={isSaving || post.status === "Posted"}
+                >
+                  <CheckCircle className="w-4 h-4 mr-2" /> Accept & Finalize
                 </Button>
               </div>
             </CardHeader>
