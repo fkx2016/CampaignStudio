@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { useRouter } from "next/navigation";
+import { API_BASE_URL } from "@/lib/api";
 
 interface User {
     id: number;
@@ -36,7 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const fetchUser = async (token: string) => {
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8001"}/users/me", {
+            const res = await fetch(`${API_BASE_URL}/users/me`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             if (res.ok) {

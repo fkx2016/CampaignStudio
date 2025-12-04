@@ -2,6 +2,7 @@
 
 import { useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import { API_BASE_URL } from "@/lib/api";
 import { Loader2, Lock, Eye, EyeOff } from "lucide-react";
 
 function ResetPasswordForm() {
@@ -28,7 +29,7 @@ function ResetPasswordForm() {
         setMessage("");
 
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8001"}/reset-password", {
+            const res = await fetch(`${API_BASE_URL}/reset-password`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ token, new_password: password }),

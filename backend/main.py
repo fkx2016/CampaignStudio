@@ -1,7 +1,12 @@
 from typing import List
-from fastapi import FastAPI, Depends, HTTPException
+import os
+from fastapi import FastAPI, Depends, HTTPException, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from sqlmodel import Session, select
+import uuid
+import shutil
+from pydantic import BaseModel
 
 from .database import create_db_and_tables, get_session
 from .models import CampaignPost, Platform, WorkspaceSettings, Mode, Campaign
@@ -14,9 +19,14 @@ app = FastAPI()
 app.include_router(auth.router)
 
 # Allow Frontend to talk to Backend
+# Get allowed origins from environment variable, default to "*" for dev convenience if not set
+# In production, this MUST be set to the frontend domain (e.g. https://campaign-studio.vercel.app)
+origins_str = os.getenv("ALLOWED_ORIGINS", "*")
+origins = [origin.strip() for origin in origins_str.split(",") if origin.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -135,7 +145,6 @@ def health_check():
 
 @app.get("/api/system-info")
 def get_system_info():
-    import os
     db_url = os.environ.get("DATABASE_URL", "")
     
     db_type = "Unknown"
@@ -300,11 +309,6 @@ def optimize_text(request: OptimizationRequest, session: Session = Depends(get_s
     return simple_optimize(request)
 
 # --- FILE UPLOAD ---
-import os
-import uuid
-import shutil
-from fastapi import File, UploadFile
-from fastapi.staticfiles import StaticFiles
 
 # Ensure directory exists
 UPLOAD_DIR = "backend/static/uploads"
@@ -312,6 +316,12 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 # Mount Static Files so they are accessible via URL
 app.mount("/static", StaticFiles(directory="backend/static"), name="static")
+
+# Helper to get base URL
+def get_base_url():
+    # In production, this should be set to the backend URL (e.g. https://api.campaignstudio.com)
+    # If not set, it falls back to localhost for development
+    return os.getenv("API_BASE_URL", "http://localhost:8001")
 
 @app.post("/api/upload")
 async def upload_image(file: UploadFile = File(...)):
@@ -324,9 +334,9 @@ async def upload_image(file: UploadFile = File(...)):
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
         
-    return {"url": f"http://localhost:8001/static/uploads/{unique_filename}"}
+    base_url = get_base_url()
+    return {"url": f"{base_url}/static/uploads/{unique_filename}"}
         
-from pydantic import BaseModel
 
 class ImageUrl(BaseModel):
     url: str
@@ -353,7 +363,8 @@ async def ingest_url(image: ImageUrl):
             for chunk in response.iter_content(chunk_size=8192):
                 f.write(chunk)
                 
-        return {"url": f"http://localhost:8001/static/uploads/{unique_filename}"}
+        base_url = get_base_url()
+        return {"url": f"{base_url}/static/uploads/{unique_filename}"}
         
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Failed to ingest URL: {str(e)}")

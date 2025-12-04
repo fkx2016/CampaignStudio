@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { CampaignPost, Campaign, Mode, Platform } from "@/types/schema";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { API_BASE_URL } from "@/lib/api";
 
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -42,7 +43,7 @@ export default function CampaignDashboard() {
 
   // Fetch System Info
   useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8001"}/api/system-info")
+    fetch(`${API_BASE_URL}/api/system-info`)
       .then(res => res.json())
       .then(data => setSystemInfo(data))
       .catch(err => console.error("Failed to fetch system info", err));
@@ -55,7 +56,7 @@ export default function CampaignDashboard() {
   // FETCH PLATFORMS
   const fetchActivePlatforms = async () => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8001"}/api/platforms");
+      const res = await fetch(`${API_BASE_URL}/api/platforms`);
       const data = await res.json();
       setActivePlatforms(data.filter((p: Platform) => p.is_active).sort((a: Platform, b: Platform) => (a.id || 0) - (b.id || 0)));
     } catch (err) {
@@ -79,7 +80,7 @@ export default function CampaignDashboard() {
       setPostsLoading(true);
       try {
         // 1. Fetch Campaigns for this Mode
-        const campRes = await fetch(`http://localhost:8001/api/campaigns?mode_slug=${currentMode}`);
+        const campRes = await fetch(`${API_BASE_URL}/api/campaigns?mode_slug=${currentMode}`);
         if (campRes.ok) {
           const campData = await campRes.json();
           setCampaigns(campData);
@@ -97,7 +98,7 @@ export default function CampaignDashboard() {
         }
 
         // 2. Fetch All Posts for this Mode (we will filter client-side for now for speed)
-        const res = await fetch(`http://localhost:8001/api/posts?mode=${currentMode}`);
+        const res = await fetch(`${API_BASE_URL}/api/posts?mode=${currentMode}`);
         if (res.ok) {
           const data = await res.json();
           setPosts(data);
@@ -127,7 +128,7 @@ export default function CampaignDashboard() {
       // Actually, our backend route `create_campaign` expects a full Campaign object.
       // Let's fetch the mode object first or just send the ID if we had it.
       // Quick hack: We will fetch modes to find the ID.
-      const modeRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8001"}/api/modes");
+      const modeRes = await fetch(`${API_BASE_URL}/api/modes`);
       const modes = await modeRes.json();
       const modeObj = modes.find((m: Mode) => m.slug === currentMode);
 
@@ -136,7 +137,7 @@ export default function CampaignDashboard() {
         return;
       }
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8001"}/api/campaigns", {
+      const res = await fetch(`${API_BASE_URL}/api/campaigns`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -183,14 +184,14 @@ export default function CampaignDashboard() {
       let res;
       if (post.id) {
         // UPDATE existing post
-        res = await fetch(`http://localhost:8001/api/posts/${post.id}`, {
+        res = await fetch(`${API_BASE_URL}/api/posts/${post.id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(updatedPost),
         });
       } else {
         // CREATE new post
-        res = await fetch(`http://localhost:8001/api/posts`, {
+        res = await fetch(`${API_BASE_URL}/api/posts`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(updatedPost),
@@ -232,7 +233,7 @@ export default function CampaignDashboard() {
         formData.append("file", file);
 
         try {
-          const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8001"}/api/upload", {
+          const res = await fetch(`${API_BASE_URL}/api/upload`, {
             method: "POST",
             body: formData,
           });
@@ -258,7 +259,7 @@ export default function CampaignDashboard() {
         setEditedImageUrl(text);
 
         try {
-          const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8001"}/api/ingest-url", {
+          const res = await fetch(`${API_BASE_URL}/api/ingest-url`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ url: text }),
@@ -288,7 +289,7 @@ export default function CampaignDashboard() {
     formData.append("file", file);
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8001"}/api/upload", {
+      const res = await fetch(`${API_BASE_URL}/api/upload`, {
         method: "POST",
         body: formData,
       });
@@ -592,7 +593,7 @@ export default function CampaignDashboard() {
                           mode: currentMode,
                           campaign_id: selectedCampaignId
                         };
-                        const res = await fetch(`http://localhost:8001/api/posts/${post.id}`, {
+                        const res = await fetch(`${API_BASE_URL}/api/posts/${post.id}`, {
                           method: "PUT",
                           headers: { "Content-Type": "application/json" },
                           body: JSON.stringify(payload),

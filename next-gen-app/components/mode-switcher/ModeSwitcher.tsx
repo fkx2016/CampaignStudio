@@ -5,6 +5,7 @@ import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { API_BASE_URL } from "@/lib/api";
 import CreateModeModal from "./CreateModeModal";
 import { Mode } from "@/types/schema";
 
@@ -24,7 +25,7 @@ export default function ModeSwitcher({ currentMode, onModeChange }: { currentMod
 
   // Fetch Modes
   useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8001"}/api/modes")
+    fetch(`${API_BASE_URL}/api/modes`)
       .then(res => res.json())
       .then(data => {
         if (data.length > 0) setModes(data);
@@ -43,7 +44,7 @@ export default function ModeSwitcher({ currentMode, onModeChange }: { currentMod
 
   const handleCreateMode = async (newMode: Partial<Mode>) => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8001"}/api/modes", {
+      const res = await fetch(`${API_BASE_URL}/api/modes`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newMode)

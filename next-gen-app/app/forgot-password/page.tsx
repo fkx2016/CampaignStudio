@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { API_BASE_URL } from "@/lib/api";
 import { Loader2, Mail } from "lucide-react";
 
 export default function ForgotPasswordPage() {
@@ -17,7 +18,7 @@ export default function ForgotPasswordPage() {
         setMessage("");
 
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8001"}/forgot-password", {
+            const res = await fetch(`${API_BASE_URL}/forgot-password`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email }),
