@@ -43,3 +43,6 @@ out/
 # OS
 .DS_Store
 Thumbs.db
+
+# Scripts with Secrets
+create_superuser.py
