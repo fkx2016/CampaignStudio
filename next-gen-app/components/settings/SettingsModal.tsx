@@ -28,8 +28,8 @@ export default function SettingsModal({ open, onOpenChange }: { open: boolean; o
                 setLoading(true);
                 try {
                     const [platformsData, settingsData] = await Promise.all([
-                        fetch("http://localhost:8001/api/platforms").then(res => res.json()),
-                        fetch("http://localhost:8001/api/settings").then(res => res.json())
+                        fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8001"}/api/platforms").then(res => res.json()),
+                        fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8001"}/api/settings").then(res => res.json())
                     ]);
                     setPlatforms(platformsData);
                     setSettings(settingsData);
@@ -47,7 +47,7 @@ export default function SettingsModal({ open, onOpenChange }: { open: boolean; o
     const updateGlobalSetting = async (field: string, value: string) => {
         if (!settings) return;
         try {
-            await fetch("http://localhost:8001/api/settings", {
+            await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8001"}/api/settings", {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ ...settings, [field]: value }),

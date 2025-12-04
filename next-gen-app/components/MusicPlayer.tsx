@@ -30,7 +30,7 @@ export default function MusicPlayer({ onClose }: { onClose: () => void }) {
     };
 
     useEffect(() => {
-        fetch("http://localhost:8001/api/settings")
+        fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8001"}/api/settings")
             .then(res => res.json())
             .then(data => {
                 if (data.default_music_url) {

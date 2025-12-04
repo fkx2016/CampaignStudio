@@ -24,7 +24,7 @@ export default function ModeSwitcher({ currentMode, onModeChange }: { currentMod
 
   // Fetch Modes
   useEffect(() => {
-    fetch("http://localhost:8001/api/modes")
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8001"}/api/modes")
       .then(res => res.json())
       .then(data => {
         if (data.length > 0) setModes(data);
@@ -43,7 +43,7 @@ export default function ModeSwitcher({ currentMode, onModeChange }: { currentMod
 
   const handleCreateMode = async (newMode: Partial<Mode>) => {
     try {
-      const res = await fetch("http://localhost:8001/api/modes", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8001"}/api/modes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newMode)

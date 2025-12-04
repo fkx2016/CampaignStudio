@@ -29,7 +29,7 @@ export default function MediaEditor({ imageUrl, onSave, onCancel }: MediaEditorP
 
     // Fetch Global Defaults
     useEffect(() => {
-        fetch("http://localhost:8001/api/settings")
+        fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8001"}/api/settings")
             .then(res => res.json())
             .then(data => {
                 if (data.default_overlay_text) setInputText(data.default_overlay_text);
