@@ -94,3 +94,20 @@ Run this command in your terminal root:
 - ✅ `lib/api.ts` (Fallback definitions are allowed)
 - ❌ **ANY** other file (Components, Pages, Utils) containing "localhost" is a FAIL.
 
+## 7. Security Roadmap & Demo Mode Risks
+**Current State (MVP):**
+To facilitate easy testing, the Backend API routes (GET/POST) are currently **PUBLIC**.
+- The Frontend implements a "Demo Mode" that bypasses the Login screen by setting a fake client-side token.
+- This allows anonymous users to interact with the real backend.
+
+**⚠️ SECURITY WARNING:**
+This configuration is **NOT SAFE** for a high-stakes production environment.
+- Anyone can send requests to your API if they know the URL.
+- There is no rate limiting or user validation on the backend for these routes.
+
+**Future Hardening Plan:**
+1.  **Lock Down Routes:** Add `Depends(get_current_user)` to all sensitive FastAPI routes.
+2.  **Demo User:** Create a specific "Demo User" in the database with restricted permissions (e.g., read-only or reset daily).
+3.  **Backend Auth:** Update the "Demo Mode" button to actually authenticate as this Demo User, rather than faking it on the client.
+
+

@@ -15,6 +15,7 @@ interface AuthContextType {
     user: User | null;
     loading: boolean;
     login: (token: string) => void;
+    loginAsDemo: () => void;
     logout: () => void;
 }
 
@@ -29,7 +30,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Check for token on mount
         const token = localStorage.getItem("token");
         if (token) {
-            fetchUser(token);
+            if (token === "demo-token") {
+                // Restore demo session
+                setUser({
+                    id: 0,
+                    email: "demo@campaignstudio.com",
+                    full_name: "Demo User",
+                    is_active: true
+                });
+                setLoading(false);
+            } else {
+                fetchUser(token);
+            }
         } else {
             setLoading(false);
         }
@@ -60,6 +72,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         router.push("/");
     };
 
+    const loginAsDemo = () => {
+        const demoUser: User = {
+            id: 0,
+            email: "demo@campaignstudio.com",
+            full_name: "Demo User",
+            is_active: true
+        };
+        localStorage.setItem("token", "demo-token");
+        setUser(demoUser);
+        router.push("/");
+    };
+
     const logout = () => {
         localStorage.removeItem("token");
         setUser(null);
@@ -67,7 +91,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     return (
-        <AuthContext.Provider value={{ user, loading, login, logout }}>
+        <AuthContext.Provider value={{ user, loading, login, loginAsDemo, logout }}>
             {children}
         </AuthContext.Provider>
     );
