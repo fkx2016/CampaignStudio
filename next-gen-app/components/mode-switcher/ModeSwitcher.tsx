@@ -65,7 +65,7 @@ export default function ModeSwitcher({ currentMode, onModeChange }: { currentMod
       {/* 1. The Switcher */}
       <div className="flex items-center justify-between p-4 border rounded-lg bg-white shadow-sm">
         <div className="space-y-1">
-          <h3 className="text-lg font-medium">Campaign Mode</h3>
+          <h3 className="text-base font-medium">Campaign Mode</h3>
           <p className="text-sm text-gray-500">Select the operational personality for this workspace.</p>
         </div>
         <div className="w-[250px]">
@@ -93,12 +93,12 @@ export default function ModeSwitcher({ currentMode, onModeChange }: { currentMod
       <Card className={`border-t-4 ${getTheme(activeMode.slug).replace("bg-", "border-")}`}>
         <CardHeader>
           <div className="flex justify-between items-center">
-            <CardTitle>Active Mode: {activeMode.name}</CardTitle>
+            <h3 className="text-sm font-semibold text-slate-900">Active Mode: {activeMode.name}</h3>
             <Badge className={`${getTheme(activeMode.slug).replace("bg-", "bg-").replace("500", "100").replace("600", "100").replace("700", "100")} text-slate-800`}>
               {activeMode.slug.toUpperCase()}
             </Badge>
           </div>
-          <p className="text-gray-500">{activeMode.description}</p>
+          <p className="text-sm text-gray-500">{activeMode.description}</p>
         </CardHeader>
       </Card>
 

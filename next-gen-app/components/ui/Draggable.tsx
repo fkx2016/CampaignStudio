@@ -6,67 +6,112 @@ interface DraggableProps {
     children: React.ReactNode;
     initialPos?: { x: number; y: number };
     className?: string;
+    containerRef?: React.RefObject<HTMLElement | HTMLDivElement | null>; // Accept null for strict typing
 }
 
-export default function Draggable({ children, initialPos = { x: 0, y: 0 }, className = "" }: DraggableProps) {
+export default function Draggable({ children, initialPos = { x: 0, y: 0 }, className = "", containerRef }: DraggableProps) {
     const [position, setPosition] = useState(initialPos);
     const [isDragging, setIsDragging] = useState(false);
-    const [relPos, setRelPos] = useState({ x: 0, y: 0 }); // Position relative to cursor
-    const nodeRef = useRef<HTMLDivElement>(null);
+    const elementRef = useRef<HTMLDivElement>(null);
+
+    // We store the initial mouse position and initial item position at the start of drag
+    const dragStartRef = useRef<{ mouseX: number; mouseY: number; itemX: number; itemY: number } | null>(null);
+
+    // Sync state if initialPos changes externally (optional, but good for resets)
+    useEffect(() => {
+        setPosition(initialPos);
+    }, [initialPos.x, initialPos.y]);
 
     const onMouseDown = (e: React.MouseEvent) => {
-        // Only drag if clicking the handle (we'll assume the first child or a specific class is the handle, 
-        // but for simplicity, let's say the whole container is draggable unless we specify otherwise.
-        // Better: Let's assume the user clicks anywhere in this container.
-        if (e.button !== 0) return;
-
-        // Calculate offset
-        if (nodeRef.current) {
-            const rect = nodeRef.current.getBoundingClientRect();
-            setRelPos({
-                x: e.clientX - rect.left,
-                y: e.clientY - rect.top
-            });
-        }
+        if (e.button !== 0) return; // Only left click
         setIsDragging(true);
+
+        // Get container offset if containerRef is provided
+        let offsetX = 0;
+        let offsetY = 0;
+
+        if (containerRef?.current) {
+            const containerRect = containerRef.current.getBoundingClientRect();
+            offsetX = containerRect.left;
+            offsetY = containerRect.top;
+        } else if (elementRef.current?.offsetParent) {
+            // Fallback: use offsetParent
+            const parentRect = elementRef.current.offsetParent.getBoundingClientRect();
+            offsetX = parentRect.left;
+            offsetY = parentRect.top;
+        }
+
+        dragStartRef.current = {
+            mouseX: e.clientX - offsetX,
+            mouseY: e.clientY - offsetY,
+            itemX: position.x,
+            itemY: position.y
+        };
+
         e.stopPropagation();
         e.preventDefault();
     };
 
     useEffect(() => {
         const onMouseMove = (e: MouseEvent) => {
-            if (!isDragging) return;
-            const newX = e.clientX - relPos.x;
-            const newY = e.clientY - relPos.y;
-            setPosition({ x: newX, y: newY });
+            if (!isDragging || !dragStartRef.current) return;
+
+            // Get container offset for relative positioning
+            let offsetX = 0;
+            let offsetY = 0;
+
+            if (containerRef?.current) {
+                const containerRect = containerRef.current.getBoundingClientRect();
+                offsetX = containerRect.left;
+                offsetY = containerRect.top;
+            } else if (elementRef.current?.offsetParent) {
+                const parentRect = elementRef.current.offsetParent.getBoundingClientRect();
+                offsetX = parentRect.left;
+                offsetY = parentRect.top;
+            }
+
+            const currentMouseX = e.clientX - offsetX;
+            const currentMouseY = e.clientY - offsetY;
+
+            const deltaX = currentMouseX - dragStartRef.current.mouseX;
+            const deltaY = currentMouseY - dragStartRef.current.mouseY;
+
+            setPosition({
+                x: dragStartRef.current.itemX + deltaX,
+                y: dragStartRef.current.itemY + deltaY
+            });
+
             e.stopPropagation();
             e.preventDefault();
         };
 
         const onMouseUp = () => {
             setIsDragging(false);
+            dragStartRef.current = null;
         };
 
         if (isDragging) {
             window.addEventListener("mousemove", onMouseMove);
             window.addEventListener("mouseup", onMouseUp);
         }
+
         return () => {
             window.removeEventListener("mousemove", onMouseMove);
             window.removeEventListener("mouseup", onMouseUp);
         };
-    }, [isDragging, relPos]);
+    }, [isDragging, containerRef]);
 
     return (
         <div
-            ref={nodeRef}
+            ref={elementRef}
             className={className}
             style={{
-                position: "fixed",
+                position: "absolute", // Critical: Relative to parent container
                 left: position.x,
                 top: position.y,
                 zIndex: 50,
                 cursor: isDragging ? "grabbing" : "grab",
+                touchAction: "none"
             }}
             onMouseDown={onMouseDown}
         >

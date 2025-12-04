@@ -19,5 +19,9 @@ echo 🌍 Frontend: http://localhost:3000
 echo 🐍 Backend:  http://localhost:8001
 echo 🐘 Database: localhost:5432
 echo.
+echo 🚀 Opening frontend in browser...
+timeout /t 3 /nobreak >nul
+start http://localhost:3000
+echo.
 echo 📜 Logs (Press Ctrl+C to exit logs, containers will keep running):
 docker-compose logs -f

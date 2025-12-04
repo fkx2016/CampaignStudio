@@ -332,6 +332,13 @@ export default function CampaignDashboard() {
     }
   };
 
+  const [isStarSpinning, setIsStarSpinning] = useState(false);
+
+  const handleStarClick = () => {
+    setIsStarSpinning(true);
+    setTimeout(() => setIsStarSpinning(false), 600); // Reset after animation
+  };
+
   if (authLoading || postsLoading) return <div className="p-10 text-center">Loading Campaign Data...</div>;
 
   // EMPTY STATE (When no posts exist for this mode)
@@ -404,88 +411,142 @@ export default function CampaignDashboard() {
   return (
     <div className="min-h-screen bg-slate-50 p-6 font-sans text-slate-900">
 
+      {/* HEADER BAR */}
+      <div className="max-w-[1800px] mx-auto mb-6 flex items-center justify-between bg-white p-4 rounded-lg shadow-sm border border-slate-200">
+        <div className="flex items-center gap-3">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/ChristmasStar.png"
+            alt="Logo"
+            className="w-8 h-8 object-contain cursor-pointer transition-transform duration-500 ease-in-out hover:scale-110"
+            style={{
+              transform: isStarSpinning ? 'rotate(360deg) scale(1.2)' : 'rotate(0deg) scale(1)',
+            }}
+            onClick={handleStarClick}
+            title="Click me! ⭐"
+          />
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Campaign Studio</h1>
+          <span className="text-xs text-slate-400 font-mono">v{systemInfo?.version || "2.0"}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold shadow-sm"
+            onClick={() => alert("🚀 Creator Hub\n\nYour AI-Powered Monetization Center\n\nComing soon:\n💰 Monetization Opportunities\n   • Affiliate programs\n   • Sponsorship matching\n   • Ad revenue optimization\n\n📚 Creator Academy\n   • AI training & tutorials\n   • Best practices library\n   • Live workshops\n\n📈 Influence Builder\n   • Audience growth strategies\n   • Engagement optimization\n   • Personal brand development\n\n🤝 Partnership Marketplace\n   • Brand connections\n   • Creator collaborations\n   • Revenue sharing deals\n\n💡 AI Success Assistant\n   • Personalized recommendations\n   • Automated opportunity alerts\n   • Performance insights\n\nMission: Make AI work for YOU, not the platforms!")}
+          >
+            <span className="mr-1.5">🚀</span>
+            Creator Hub
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => setShowMusic(!showMusic)} className={showMusic ? "bg-blue-50 border-blue-200 text-blue-600" : ""}>
+            <Music className="w-4 h-4 mr-2" />
+            {showMusic ? "Hide Player" : "Focus Music"}
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => setShowSettings(true)}>
+            <Settings className="w-4 h-4 mr-2" />
+            Settings
+          </Button>
+        </div>
+      </div>
+
       {/* 3-COLUMN LAYOUT */}
       <div className="max-w-[1800px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
 
         {/* COL 1: LEFT PANEL (Mode & Navigation) - Span 3 */}
-        <div className="lg:col-span-3 space-y-6">
+        <div className="lg:col-span-3 space-y-4">
 
           {/* 1. Mode Switcher */}
           <ModeSwitcher currentMode={currentMode} onModeChange={setCurrentMode} />
 
-          {/* 2. Campaign Control Panel */}
+          {/* 2. Campaign Selector */}
           <Card className="shadow-sm border-slate-200">
             <CardHeader className="pb-3">
-              <CardTitle className="text-lg font-bold text-slate-800">Campaign Manager</CardTitle>
+              <CardTitle className="text-sm font-semibold text-slate-800">Campaign</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-
-              {/* App Info */}
-              <div className="bg-slate-100 p-3 rounded-md border border-slate-200">
-                <h1 className="text-sm font-bold text-slate-900">Campaign Studio v{systemInfo?.version || "2.0"}</h1>
-                <p className="text-xs text-slate-500">Connected to {systemInfo?.database_type || "..."}</p>
+            <CardContent>
+              <div className="flex gap-2">
+                <select
+                  className="flex-1 text-sm border-slate-300 rounded-md p-2 bg-white"
+                  value={selectedCampaignId || ""}
+                  onChange={(e) => {
+                    const val = Number(e.target.value);
+                    setSelectedCampaignId(val);
+                    setCurrentIndex(0);
+                  }}
+                >
+                  {campaigns.map(c => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                  {campaigns.length === 0 && <option value="">No Campaigns</option>}
+                </select>
+                <Button size="icon" variant="outline" onClick={() => setShowCreateCampaign(true)} title="New Campaign">
+                  <Plus className="w-4 h-4" />
+                </Button>
               </div>
+            </CardContent>
+          </Card>
 
-              {/* Campaign Selector */}
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Active Campaign</label>
-                <div className="flex gap-2">
-                  <select
-                    className="flex-1 text-sm border-slate-300 rounded-md p-2 bg-white"
-                    value={selectedCampaignId || ""}
-                    onChange={(e) => {
-                      const val = Number(e.target.value);
-                      setSelectedCampaignId(val);
-                      setCurrentIndex(0);
-                    }}
-                  >
-                    {campaigns.map(c => (
-                      <option key={c.id} value={c.id}>{c.name}</option>
-                    ))}
-                    {campaigns.length === 0 && <option value="">No Campaigns</option>}
-                  </select>
-                  <Button size="icon" variant="outline" onClick={() => setShowCreateCampaign(true)} title="New Campaign">
-                    <Plus className="w-4 h-4" />
-                  </Button>
-                </div>
+          {/* 3. Active Campaign Info */}
+          <Card className="shadow-sm border-slate-200">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-semibold text-slate-800">Active Campaign</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="bg-slate-50 p-3 rounded-md border border-slate-200">
+                <p className="text-sm font-medium text-slate-700">
+                  {campaigns.find(c => c.id === selectedCampaignId)?.name || "No campaign selected"}
+                </p>
+                <p className="text-xs text-slate-500 mt-1">
+                  {filteredPosts.length} post{filteredPosts.length !== 1 ? 's' : ''} in this campaign
+                </p>
               </div>
 
               {/* Navigation Controls */}
               <div className="flex items-center justify-between gap-2">
-                <Button variant="outline" onClick={prevPost} className="flex-1">
+                <Button variant="outline" onClick={prevPost} className="flex-1" size="sm">
                   <ChevronLeft className="w-4 h-4 mr-1" /> Prev
                 </Button>
-                <span className="text-sm font-mono font-bold text-slate-700 min-w-[60px] text-center bg-white border border-slate-200 py-2 rounded-md">
+                <span className="text-sm font-mono font-bold text-slate-700 min-w-[60px] text-center bg-white border border-slate-200 py-1.5 px-2 rounded-md">
                   {filteredPosts.length > 0 ? currentIndex + 1 : 0} / {filteredPosts.length}
                 </span>
-                <Button variant="outline" onClick={nextPost} className="flex-1">
+                <Button variant="outline" onClick={nextPost} className="flex-1" size="sm">
                   Next <ChevronRight className="w-4 h-4 ml-1" />
                 </Button>
               </div>
+            </CardContent>
+          </Card>
 
-              <div className="h-px bg-slate-100 my-2"></div>
+          {/* 4. Workspace Tools */}
+          <Card className="shadow-sm border-slate-200">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-semibold text-slate-800">Workspace Tools</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
 
-              {/* Settings / Meta Actions */}
-              <Button variant="secondary" className="w-full justify-start" onClick={() => setShowSettings(true)}>
-                ⚙️ Workspace Settings
+              {/* Standard Tools */}
+              <Button variant="secondary" className="w-full justify-start text-sm" onClick={() => alert(`Database: ${systemInfo?.database_type || "PostgreSQL"}\nStatus: Connected ✓\nVersion: ${systemInfo?.version || "2.0"}`)}>
+                🗄️ Database Info
               </Button>
-              <Button variant="secondary" className="w-full justify-start" onClick={() => alert("Analytics coming soon!")}>
-                📊 View Analytics
+              <Button variant="secondary" className="w-full justify-start text-sm" onClick={() => alert("Analytics Dashboard\n\nComing soon:\n• Post performance metrics\n• Engagement tracking\n• Campaign ROI analysis\n• A/B testing results")}>
+                📊 Analytics
               </Button>
-
-              <div className="h-px bg-slate-100 my-2"></div>
-
-              {/* Studio Atmosphere */}
-              <div className="bg-indigo-50 p-3 rounded-md border border-indigo-100">
-                <h3 className="text-xs font-bold text-indigo-400 uppercase tracking-wider mb-2">Studio Atmosphere</h3>
-                <Button
-                  className="w-full bg-white text-indigo-600 hover:bg-indigo-50 border border-indigo-200 shadow-sm"
-                  onClick={() => setShowMusic(true)}
-                >
-                  🎧 Play Focus Music
-                </Button>
-              </div>
-
+              <Button variant="secondary" className="w-full justify-start text-sm" onClick={() => alert("API Keys & Integrations\n\nComing soon:\n• Platform API keys\n• Webhook configurations\n• Third-party integrations\n• OAuth connections")}>
+                🔑 API Keys
+              </Button>
+              <Button variant="secondary" className="w-full justify-start text-sm" onClick={() => alert("Campaign Sharing\n\nComing soon:\n• Share with team members\n• Public campaign links\n• Embed widgets\n• Collaboration permissions")}>
+                🔗 Share Campaign
+              </Button>
+              <Button variant="secondary" className="w-full justify-start text-sm" onClick={() => alert("Team Messaging\n\nComing soon:\n• Campaign comments\n• @mentions\n• Activity feed\n• Real-time notifications")}>
+                💬 Team Chat
+              </Button>
+              <Button variant="secondary" className="w-full justify-start text-sm" onClick={() => alert("Export Campaign\n\nComing soon:\n• Export to CSV/JSON\n• PDF reports\n• Media archive\n• Analytics export")}>
+                📤 Export
+              </Button>
+              <Button variant="secondary" className="w-full justify-start text-sm" onClick={() => alert("Import Posts\n\nComing soon:\n• CSV/JSON import\n• Bulk post creation\n• Template library\n• Content migration")}>
+                📥 Import
+              </Button>
+              <Button variant="secondary" className="w-full justify-start text-sm" onClick={() => alert("Backup & Restore\n\nComing soon:\n• Automated backups\n• Campaign snapshots\n• Version history\n• Disaster recovery")}>
+                💾 Backup
+              </Button>
             </CardContent>
           </Card>
         </div>
@@ -565,7 +626,7 @@ export default function CampaignDashboard() {
                 <Input
                   value={editedTitle}
                   onChange={(e) => setEditedTitle(e.target.value)}
-                  className="font-semibold text-lg border-slate-300 focus:border-blue-500 focus:ring-blue-500"
+                  className="font-semibold text-base border-slate-300 focus:border-blue-500 focus:ring-blue-500"
                   placeholder="Enter posting title..."
                 />
               </div>
