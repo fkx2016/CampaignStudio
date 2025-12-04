@@ -129,6 +129,10 @@ def on_startup():
 def read_root():
     return {"message": "Campaign Poster API v2.0 is Live"}
 
+@app.get("/health")
+def health_check():
+    return {"status": "healthy"}
+
 @app.get("/api/system-info")
 def get_system_info():
     import os
