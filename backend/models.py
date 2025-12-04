@@ -1,5 +1,5 @@
 from typing import List, Optional, Dict, Any
-from sqlmodel import Field, SQLModel, JSON, Column, Relationship
+from sqlmodel import Field, SQLModel, JSON, Column, Relationship, String
 from datetime import datetime
 from .enums import PostStatus, CampaignStatus, ModeSlug
 
@@ -10,8 +10,8 @@ class CampaignPost(SQLModel, table=True):
     category_primary: str
     category_secondary: Optional[str] = ""
     category_tertiary: Optional[str] = ""
-    status: PostStatus = Field(default=PostStatus.PENDING)
-    mode: ModeSlug = Field(default=ModeSlug.EBEG)
+    status: PostStatus = Field(default=PostStatus.PENDING, sa_column=Column(String))
+    mode: ModeSlug = Field(default=ModeSlug.EBEG, sa_column=Column(String))
     posted_date: Optional[str] = ""
     
     # Media & Content
@@ -42,7 +42,7 @@ class Campaign(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     name: str
     description: Optional[str] = ""
-    status: CampaignStatus = Field(default=CampaignStatus.ACTIVE)
+    status: CampaignStatus = Field(default=CampaignStatus.ACTIVE, sa_column=Column(String))
     
     # Relationship to Mode
     mode_id: Optional[int] = Field(default=None, foreign_key="mode.id")
@@ -56,13 +56,17 @@ class Platform(SQLModel, table=True):
     name: str
     slug: str = Field(index=True, unique=True) # e.g. 'x', 'linkedin', 'instagram'
     base_url: str # The URL to open for posting
-    icon: str # Emoji or Lucide icon name
+    icon: str = Field(default="🌐") # Emoji or Lucide icon name
     char_limit: int = Field(default=280)
     is_active: bool = Field(default=True)
     
     # Customization
     default_hashtags: Optional[str] = "" # e.g. "#tech #news"
     post_suffix: Optional[str] = "" # e.g. "Link in bio 👇"
+    
+    # Platform Guidance (NEW)
+    description: Optional[str] = "" # One-sentence summary of the platform
+    content_recommendations: Optional[str] = "" # What content works best on this platform
 
 class WorkspaceSettings(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
