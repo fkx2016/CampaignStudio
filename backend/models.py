@@ -1,6 +1,7 @@
 from typing import List, Optional, Dict, Any
 from sqlmodel import Field, SQLModel, JSON, Column, Relationship
 from datetime import datetime
+from .enums import PostStatus, CampaignStatus, ModeSlug
 
 class CampaignPost(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -9,8 +10,8 @@ class CampaignPost(SQLModel, table=True):
     category_primary: str
     category_secondary: Optional[str] = ""
     category_tertiary: Optional[str] = ""
-    status: str = Field(default="Pending") # Pending, Posted
-    mode: str = Field(default="ebeg") # ebeg, content, promotion, political
+    status: PostStatus = Field(default=PostStatus.PENDING)
+    mode: ModeSlug = Field(default=ModeSlug.EBEG)
     posted_date: Optional[str] = ""
     
     # Media & Content
@@ -41,7 +42,7 @@ class Campaign(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     name: str
     description: Optional[str] = ""
-    status: str = Field(default="Active") # Active, Archived, Completed
+    status: CampaignStatus = Field(default=CampaignStatus.ACTIVE)
     
     # Relationship to Mode
     mode_id: Optional[int] = Field(default=None, foreign_key="mode.id")

@@ -2,6 +2,7 @@ import json
 from sqlmodel import Session, select
 from backend.database import engine
 from backend.models import CampaignPost, Campaign, Mode
+from backend.enums import PostStatus, ModeSlug
 
 def restore_original_campaign():
     print("🚀 Starting Restoration of Original Campaign...")
@@ -26,7 +27,7 @@ def restore_original_campaign():
 
         # 2. Get the Target "Original" Campaign
         # We'll create a specific "Original Donation Drive" campaign under "ebeg" mode
-        mode = session.exec(select(Mode).where(Mode.slug == "ebeg")).first()
+        mode = session.exec(select(Mode).where(Mode.slug == ModeSlug.EBEG)).first()
         if not mode:
             print("❌ Error: 'ebeg' mode not found. Please run the main importer first.")
             return
@@ -68,7 +69,7 @@ def restore_original_campaign():
                 category_primary=item.get("category_primary", "General"),
                 category_secondary=item.get("category_secondary", ""),
                 category_tertiary=item.get("category_tertiary", ""),
-                status="Pending", # Reset status for the fresh copy
+                status=PostStatus.PENDING, # Reset status for the fresh copy
                 mode=mode.slug,
                 campaign_id=campaign.id,
                 

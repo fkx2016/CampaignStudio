@@ -4,7 +4,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlmodel import Session, select
 
 from .database import create_db_and_tables, get_session
-from .models import CampaignPost, Platform, WorkspaceSettings, Mode
+from .models import CampaignPost, Platform, WorkspaceSettings, Mode, Campaign
+from .enums import PostStatus, CampaignStatus, ModeSlug
 from . import auth
 
 app = FastAPI()
@@ -29,66 +30,56 @@ INITIAL_PLATFORMS = [
     {"name": "Instagram", "slug": "instagram", "base_url": "https://www.instagram.com/", "icon": "Instagram", "char_limit": 2200},
     {"name": "TikTok", "slug": "tiktok", "base_url": "https://www.tiktok.com/upload", "icon": "Video", "char_limit": 2200},
     {"name": "YouTube", "slug": "youtube", "base_url": "https://studio.youtube.com/", "icon": "Youtube", "char_limit": 5000},
-    {"name": "Threads", "slug": "threads", "base_url": "https://www.threads.net/", "icon": "AtSign", "char_limit": 500},
-    {"name": "Reddit", "slug": "reddit", "base_url": "https://www.reddit.com/submit", "icon": "MessageCircle", "char_limit": 40000},
-    {"name": "Discord", "slug": "discord", "base_url": "https://discord.com/app", "icon": "MessageSquare", "char_limit": 2000},
-    {"name": "Substack", "slug": "substack", "base_url": "https://substack.com/dashboard/post/new", "icon": "BookOpen", "char_limit": 100000},
-    {"name": "Medium", "slug": "medium", "base_url": "https://medium.com/new-story", "icon": "Book", "char_limit": 100000},
     {"name": "Telegram", "slug": "telegram", "base_url": "https://web.telegram.org/", "icon": "Send", "char_limit": 4096},
     {"name": "WhatsApp", "slug": "whatsapp", "base_url": "https://web.whatsapp.com/", "icon": "Phone", "char_limit": 65536},
     {"name": "Pinterest", "slug": "pinterest", "base_url": "https://www.pinterest.com/pin-builder/", "icon": "Pin", "char_limit": 500},
     {"name": "Snapchat", "slug": "snapchat", "base_url": "https://web.snapchat.com/", "icon": "Ghost", "char_limit": 250},
-    {"name": "Tumblr", "slug": "tumblr", "base_url": "https://www.tumblr.com/new", "icon": "Type", "char_limit": 100000},
-    {"name": "Twitch", "slug": "twitch", "base_url": "https://dashboard.twitch.tv/", "icon": "Tv", "char_limit": 5000},
-    {"name": "Truth Social", "slug": "truth", "base_url": "https://truthsocial.com/", "icon": "Flag", "char_limit": 500},
+    {"name": "Threads", "slug": "threads", "base_url": "https://www.threads.net/", "icon": "AtSign", "char_limit": 500},
+    {"name": "Bluesky", "slug": "bluesky", "base_url": "https://bsky.app/", "icon": "Cloud", "char_limit": 300},
+    {"name": "Ghost", "slug": "ghost", "base_url": "https://ghost.org/", "icon": "Ghost", "char_limit": 100000},
+    {"name": "Substack", "slug": "substack", "base_url": "https://substack.com/dashboard/post/new", "icon": "BookOpen", "char_limit": 100000},
+    {"name": "Medium", "slug": "medium", "base_url": "https://medium.com/new-story", "icon": "Book", "char_limit": 100000},
+    {"name": "Reddit", "slug": "reddit", "base_url": "https://www.reddit.com/submit", "icon": "MessageCircle", "char_limit": 40000},
+    {"name": "Discord", "slug": "discord", "base_url": "https://discord.com/app", "icon": "MessageSquare", "char_limit": 2000},
     {"name": "Gab", "slug": "gab", "base_url": "https://gab.com/", "icon": "MessageSquare", "char_limit": 3000},
     {"name": "Gettr", "slug": "gettr", "base_url": "https://gettr.com/", "icon": "Flame", "char_limit": 777},
     {"name": "Rumble", "slug": "rumble", "base_url": "https://rumble.com/upload.php", "icon": "Video", "char_limit": 5000},
     {"name": "Minds", "slug": "minds", "base_url": "https://www.minds.com/", "icon": "Brain", "char_limit": 5000},
     {"name": "Mastodon", "slug": "mastodon", "base_url": "https://mastodon.social/", "icon": "Server", "char_limit": 500},
-    {"name": "Bluesky", "slug": "bluesky", "base_url": "https://bsky.app/", "icon": "Cloud", "char_limit": 300},
-    {"name": "Ghost", "slug": "ghost", "base_url": "https://ghost.org/", "icon": "Ghost", "char_limit": 100000},
 ]
 
 INITIAL_MODES = [
     {
         "name": "Donation / E-Begging",
-        "slug": "donation",
+        "slug": ModeSlug.EBEG,
         "description": "Empathetic storytelling with clear financial asks.",
         "tone_guidelines": "Vulnerable, urgent, grateful. Focus on the 'why'.",
         "structure_template": "Hook (The Need) -> Story (The Context) -> Ask (The Solution) -> Gratitude",
     },
     {
         "name": "Political / Activism",
-        "slug": "political",
+        "slug": ModeSlug.POLITICAL,
         "description": "Provocative engagement and Socratic questioning.",
         "tone_guidelines": "Bold, questioning, rallying. Challenge the status quo.",
-        "structure_template": "Hook (The Outrage) -> Evidence (The Facts) -> Question (The Socratic Turn) -> Call to Action",
+        "structure_template": "Hook (The Injustice) -> Evidence (The Facts) -> Question (The Shift) -> CTA",
     },
     {
-        "name": "Selling / Commerce",
-        "slug": "selling",
-        "description": "Benefit-driven copy optimized for conversion.",
-        "tone_guidelines": "Confident, value-focused, clear. Focus on benefits, not features.",
-        "structure_template": "Hook (The Problem) -> Solution (The Product) -> Proof (Social/Data) -> Offer (CTA)",
-    },
-    {
-        "name": "Education / Authority",
-        "slug": "education",
-        "description": "High-value content that builds trust and authority.",
+        "name": "Content / Thought Leadership",
+        "slug": ModeSlug.CONTENT,
+        "description": "High-value educational content to build authority.",
         "tone_guidelines": "Helpful, knowledgeable, clear. Teach, don't preach.",
         "structure_template": "Hook (The Insight) -> Explanation (The How-To) -> Example (The Proof) -> Summary",
     },
     {
-        "name": "Promotion / Hype",
-        "slug": "promotion",
+        "name": "Promotion / Sales",
+        "slug": ModeSlug.PROMOTION,
         "description": "Excitement-building for events or launches.",
         "tone_guidelines": "High energy, exclusive, urgent. Use FOMO.",
         "structure_template": "Hook (The Big News) -> Details (The What/When) -> Scarcity (The Why Now) -> CTA",
     },
     {
         "name": "Awareness / Viral",
-        "slug": "awareness",
+        "slug": ModeSlug.AWARENESS,
         "description": "Broad appeal content designed for maximum sharing.",
         "tone_guidelines": "Relatable, emotional, surprising. Aim for the 'Whoa' factor.",
         "structure_template": "Hook (The Surprise) -> Story (The Emotion) -> Twist (The Insight) -> Share Ask",
@@ -160,8 +151,6 @@ def get_system_info():
         "environment": "Development" if "dev" in os.environ.get("ENV", "dev") else "Production"
     }
 
-# ... (Existing Post Routes) ...
-
 # --- SETTINGS ROUTES ---
 
 @app.get("/api/settings", response_model=WorkspaceSettings)
@@ -226,8 +215,6 @@ def create_mode(mode: Mode, session: Session = Depends(get_session)):
 
 # --- CAMPAIGN ROUTES ---
 
-from .models import Campaign
-
 @app.get("/api/campaigns", response_model=List[Campaign])
 def read_campaigns(mode_slug: str = None, session: Session = Depends(get_session)):
     query = select(Campaign)
@@ -265,7 +252,7 @@ def create_post(post: CampaignPost, session: Session = Depends(get_session)):
     # Auto-link to Campaign if missing
     if not post.campaign_id:
         # 1. Find Mode
-        mode_slug = post.mode or "ebeg"
+        mode_slug = post.mode or ModeSlug.EBEG
         mode = session.exec(select(Mode).where(Mode.slug == mode_slug)).first()
         if mode:
             # 2. Find/Create Campaign
