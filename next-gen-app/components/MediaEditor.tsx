@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import QRCode from "react-qr-code";
+import { API_BASE_URL } from "@/lib/api";
 import { Type, QrCode, X, Check, Square, Smartphone, Monitor, LayoutTemplate } from "lucide-react";
 import Draggable from "@/components/ui/Draggable"; // Re-using our draggable component
 
@@ -29,7 +30,7 @@ export default function MediaEditor({ imageUrl, onSave, onCancel }: MediaEditorP
 
     // Fetch Global Defaults
     useEffect(() => {
-        fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8001"}/api/settings")
+        fetch(`${API_BASE_URL}/api/settings`)
             .then(res => res.json())
             .then(data => {
                 if (data.default_overlay_text) setInputText(data.default_overlay_text);

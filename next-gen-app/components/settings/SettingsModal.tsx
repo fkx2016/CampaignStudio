@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { API_BASE_URL } from "@/lib/api";
 import { X, Search, Globe, Hash } from "lucide-react";
 
 interface Platform {
@@ -28,8 +29,8 @@ export default function SettingsModal({ open, onOpenChange }: { open: boolean; o
                 setLoading(true);
                 try {
                     const [platformsData, settingsData] = await Promise.all([
-                        fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8001"}/api/platforms").then(res => res.json()),
-                        fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8001"}/api/settings").then(res => res.json())
+                        fetch(`${API_BASE_URL}/api/platforms`).then(res => res.json()),
+                        fetch(`${API_BASE_URL}/api/settings`).then(res => res.json())
                     ]);
                     setPlatforms(platformsData);
                     setSettings(settingsData);
@@ -47,7 +48,7 @@ export default function SettingsModal({ open, onOpenChange }: { open: boolean; o
     const updateGlobalSetting = async (field: string, value: string) => {
         if (!settings) return;
         try {
-            await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8001"}/api/settings", {
+            await fetch(`${API_BASE_URL}/api/settings`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ ...settings, [field]: value }),
@@ -64,7 +65,7 @@ export default function SettingsModal({ open, onOpenChange }: { open: boolean; o
         setPlatforms(platforms.map(p => p.id === id ? { ...p, is_active: !currentStatus } : p));
 
         try {
-            await fetch(`http://localhost:8001/api/platforms/${id}`, {
+            await fetch(`${API_BASE_URL}/api/platforms/${id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ is_active: !currentStatus }),
@@ -79,7 +80,7 @@ export default function SettingsModal({ open, onOpenChange }: { open: boolean; o
     // Update Custom Fields (Hashtags/Suffix)
     const updatePlatformField = async (id: number, field: string, value: string) => {
         try {
-            await fetch(`http://localhost:8001/api/platforms/${id}`, {
+            await fetch(`${API_BASE_URL}/api/platforms/${id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ [field]: value }),

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Draggable from "@/components/ui/Draggable";
+import { API_BASE_URL } from "@/lib/api";
 import { X, Minimize2, Maximize2, Music } from "lucide-react";
 // Removed Button import as we use native buttons for the player controls
 
@@ -30,7 +31,7 @@ export default function MusicPlayer({ onClose }: { onClose: () => void }) {
     };
 
     useEffect(() => {
-        fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8001"}/api/settings")
+        fetch(`${API_BASE_URL}/api/settings`)
             .then(res => res.json())
             .then(data => {
                 if (data.default_music_url) {

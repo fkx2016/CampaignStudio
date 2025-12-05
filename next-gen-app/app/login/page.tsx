@@ -3,10 +3,11 @@
 import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import Link from "next/link";
+import { API_BASE_URL } from "@/lib/api";
 import { Loader2, ShieldCheck, Eye, EyeOff } from "lucide-react";
 
 export default function LoginPage() {
-    const { login } = useAuth();
+    const { login, loginAsDemo } = useAuth();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
@@ -24,7 +25,7 @@ export default function LoginPage() {
             formData.append("username", email);
             formData.append("password", password);
 
-            const API_URL = process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8001"}";
+            const API_URL = API_BASE_URL;
             const res = await fetch(`${API_URL}/token`, {
                 method: "POST",
                 body: formData,
@@ -110,6 +111,24 @@ export default function LoginPage() {
                         className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
                     >
                         {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Sign In"}
+                    </button>
+
+                    <div className="relative my-4">
+                        <div className="absolute inset-0 flex items-center">
+                            <span className="w-full border-t border-slate-200" />
+                        </div>
+                        <div className="relative flex justify-center text-xs uppercase">
+                            <span className="bg-white px-2 text-slate-500">Or</span>
+                        </div>
+                    </div>
+
+                    <button
+                        type="button"
+                        onClick={() => loginAsDemo()}
+                        className="w-full bg-white hover:bg-slate-50 text-slate-700 font-semibold py-2.5 rounded-lg border border-slate-300 transition-all flex items-center justify-center gap-2"
+                    >
+                        <ShieldCheck className="w-4 h-4 text-green-600" />
+                        Try Demo Mode (No Login)
                     </button>
                 </form>
 
