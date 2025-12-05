@@ -444,13 +444,12 @@ export default function StudioPage() {
                                         {isEditingMedia ? "Close Studio" : "Open Studio"}
                                     </Button>
                                 </div>
-
                                 {isEditingMedia ? (
                                     <div className="p-0 animate-in slide-in-from-top-4 duration-300">
                                         <MediaEditor
                                             imageUrl={editedImageUrl}
-                                            onSave={(file: File | null) => {
-                                                // Handle file -> blob -> url conversion here ideally, or strictly just mock it
+                                            onSave={(blob: Blob) => {
+                                                // Handle blob -> url conversion here ideally, or strictly just mock it
                                                 setIsEditingMedia(false);
                                             }}
                                             onCancel={() => setIsEditingMedia(false)}
@@ -549,65 +548,67 @@ export default function StudioPage() {
             </div>
 
             {/* PLATFORM SELECTOR MODAL */}
-            {showPlatformSelector && (
-                <div className="fixed inset-0 z-[100] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
-                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[80vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
-                        <div className="p-6 border-b border-slate-100 flex justify-between items-center">
-                            <div>
-                                <h2 className="text-xl font-bold text-slate-900">Configure Destinations</h2>
-                                <p className="text-slate-500 text-sm">Select platforms, portals, or tools to act upon.</p>
-                            </div>
-                            <Button variant="ghost" size="icon" onClick={() => setShowPlatformSelector(false)}>
-                                <XIcon className="w-5 h-5" />
-                            </Button>
-                        </div>
-
-                        <div className="flex-1 overflow-y-auto p-6 bg-slate-50/50">
-                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                                {MOCK_PLATFORMS.map((plat) => {
-                                    const isActive = activePlatformSlugs.includes(plat.slug);
-                                    return (
-                                        <div
-                                            key={plat.slug}
-                                            onClick={() => togglePlatform(plat.slug)}
-                                            className={cn(
-                                                "relative flex flex-col items-start p-4 rounded-xl border-2 cursor-pointer transition-all",
-                                                isActive
-                                                    ? "bg-white border-blue-600 shadow-md ring-1 ring-blue-600/20"
-                                                    : "bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50"
-                                            )}
-                                        >
-                                            {isActive && (
-                                                <div className="absolute top-3 right-3 text-blue-600">
-                                                    <Check className="w-5 h-5 bg-blue-100 rounded-full p-0.5" />
-                                                </div>
-                                            )}
-
-                                            <div className="w-10 h-10 rounded-lg flex items-center justify-center mb-3 bg-slate-100 text-slate-400">
-                                                <Globe className="w-5 h-5" />
-                                            </div>
-
-                                            <h3 className="font-bold text-slate-900 text-sm">{plat.name}</h3>
-                                            <p className="text-xs text-slate-500 mt-1 line-clamp-2">{plat.description}</p>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </div>
-
-                        <div className="p-4 border-t border-slate-100 bg-white flex justify-between items-center">
-                            <Link href="/pricing">
-                                <Button variant="ghost" className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 text-xs font-bold">
-                                    <Zap className="w-3 h-3 mr-1 fill-current" /> Upgrade to Pro to Save
+            {
+                showPlatformSelector && (
+                    <div className="fixed inset-0 z-[100] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+                        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[80vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+                            <div className="p-6 border-b border-slate-100 flex justify-between items-center">
+                                <div>
+                                    <h2 className="text-xl font-bold text-slate-900">Configure Destinations</h2>
+                                    <p className="text-slate-500 text-sm">Select platforms, portals, or tools to act upon.</p>
+                                </div>
+                                <Button variant="ghost" size="icon" onClick={() => setShowPlatformSelector(false)}>
+                                    <XIcon className="w-5 h-5" />
                                 </Button>
-                            </Link>
-                            <Button onClick={() => setShowPlatformSelector(false)} className="px-8">
-                                Done
-                            </Button>
+                            </div>
+
+                            <div className="flex-1 overflow-y-auto p-6 bg-slate-50/50">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                    {MOCK_PLATFORMS.map((plat) => {
+                                        const isActive = activePlatformSlugs.includes(plat.slug);
+                                        return (
+                                            <div
+                                                key={plat.slug}
+                                                onClick={() => togglePlatform(plat.slug)}
+                                                className={cn(
+                                                    "relative flex flex-col items-start p-4 rounded-xl border-2 cursor-pointer transition-all",
+                                                    isActive
+                                                        ? "bg-white border-blue-600 shadow-md ring-1 ring-blue-600/20"
+                                                        : "bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50"
+                                                )}
+                                            >
+                                                {isActive && (
+                                                    <div className="absolute top-3 right-3 text-blue-600">
+                                                        <Check className="w-5 h-5 bg-blue-100 rounded-full p-0.5" />
+                                                    </div>
+                                                )}
+
+                                                <div className="w-10 h-10 rounded-lg flex items-center justify-center mb-3 bg-slate-100 text-slate-400">
+                                                    <Globe className="w-5 h-5" />
+                                                </div>
+
+                                                <h3 className="font-bold text-slate-900 text-sm">{plat.name}</h3>
+                                                <p className="text-xs text-slate-500 mt-1 line-clamp-2">{plat.description}</p>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+
+                            <div className="p-4 border-t border-slate-100 bg-white flex justify-between items-center">
+                                <Link href="/pricing">
+                                    <Button variant="ghost" className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 text-xs font-bold">
+                                        <Zap className="w-3 h-3 mr-1 fill-current" /> Upgrade to Pro to Save
+                                    </Button>
+                                </Link>
+                                <Button onClick={() => setShowPlatformSelector(false)} className="px-8">
+                                    Done
+                                </Button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
             {/* FLOATING MUSIC PLAYER */}
             <div className={cn("fixed bottom-6 right-6 z-50 transition-all duration-300", showMusic ? "translate-y-0 opacity-100" : "translate-y-20 opacity-0 pointer-events-none")}>
@@ -628,6 +629,6 @@ export default function StudioPage() {
                 </a>
             </div>
 
-        </div>
+        </div >
     );
 }

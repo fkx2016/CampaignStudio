@@ -280,7 +280,7 @@ export default function DemoDashboard() {
                                         <div className="p-0 animate-in slide-in-from-top-4 duration-300">
                                             <MediaEditor
                                                 imageUrl={editedImageUrl}
-                                                onSave={(file: File | null) => { setIsEditingMedia(false); }}
+                                                onSave={(blob: Blob) => { setIsEditingMedia(false); }}
                                                 onCancel={() => setIsEditingMedia(false)}
                                             />
                                         </div>
