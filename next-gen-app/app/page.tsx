@@ -11,7 +11,7 @@ import { API_BASE_URL } from "@/lib/api";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Copy, ExternalLink, RefreshCw, CheckCircle, ChevronLeft, ChevronRight, Save, Settings, Music, Plus } from "lucide-react";
+import { Copy, ExternalLink, RefreshCw, CheckCircle, ChevronLeft, ChevronRight, Save, Settings, Music, Plus, LogOut, User, FolderInput } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ModeSwitcher from "@/components/mode-switcher/ModeSwitcher";
 import MusicPlayer from "@/components/MusicPlayer";
@@ -22,7 +22,7 @@ import CreateCampaignModal from "@/components/campaign/CreateCampaignModal";
 // Removed Button/Slider imports as we use native/inline for now to avoid errors
 
 export default function CampaignDashboard() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, logout } = useAuth();
   const router = useRouter();
 
   // Protect Route
@@ -83,10 +83,12 @@ export default function CampaignDashboard() {
         const campRes = await fetch(`${API_BASE_URL}/api/campaigns?mode_slug=${currentMode}`);
         if (campRes.ok) {
           const campData = await campRes.json();
+          console.log("DEBUG: Fetched Campaigns:", campData);
           setCampaigns(campData);
 
           // Auto-select first campaign if none selected or invalid
           if (campData.length > 0) {
+            console.log("DEBUG: Auto-selecting Campaign ID:", campData[0].id);
             setSelectedCampaignId(campData[0].id);
           } else {
             setSelectedCampaignId(null);
@@ -101,6 +103,7 @@ export default function CampaignDashboard() {
         const res = await fetch(`${API_BASE_URL}/api/posts?mode=${currentMode}`);
         if (res.ok) {
           const data = await res.json();
+          console.log("DEBUG: Fetched Posts:", data);
           setPosts(data);
         } else {
           setPosts([]);
@@ -363,45 +366,108 @@ export default function CampaignDashboard() {
                 <Settings className="w-4 h-4 mr-2" />
                 Settings
               </Button>
+              <Button
+                size="sm"
+                className="bg-red-600 hover:bg-red-700 text-white border-transparent shadow-sm"
+                onClick={logout}
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Sign Out
+              </Button>
             </div>
           </div>
 
           {/* Mode Switcher is ALWAYS visible so user can backtrack */}
           <ModeSwitcher currentMode={currentMode} onModeChange={setCurrentMode} />
 
-          <div className="flex flex-col items-center justify-center p-12 border-2 border-dashed border-slate-300 rounded-lg bg-slate-100/50 text-center">
-            <div className="text-4xl mb-4">📭</div>
-            <h3 className="text-xl font-bold text-slate-700">No Campaigns Found</h3>
-            <p className="text-slate-500 mb-6 max-w-md">
-              There are no posts for <strong>{currentMode.toUpperCase()}</strong> mode yet.
-              Start a new campaign or switch back to another mode.
-            </p>
-            <div className="flex gap-4">
-              <Button
-                onClick={() => setCurrentMode("ebeg")}
-                variant="outline"
-              >
-                ← Back to E-Beg
-              </Button>
-              <Button
-                onClick={() => {
-                  // Create a placeholder post for this mode
-                  const newPost = {
-                    title: "New Campaign",
-                    hook_text: "Write your hook here...",
-                    status: "Pending",
-                    mode: currentMode, // Important: Tag it with current mode
-                    category_primary: "General",
-                    campaign_id: selectedCampaignId
-                  };
-                  // Optimistic UI update
-                  setPosts([newPost as CampaignPost]);
-                  setCurrentIndex(0);
-                }}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
-              >
-                + Create First {currentMode} Posting
-              </Button>
+          <div className="flex flex-col items-center justify-center p-12 border-2 border-dashed border-slate-300 rounded-lg bg-white/50 text-center">
+            <div className="max-w-2xl mx-auto space-y-8">
+
+              {/* Mission Statement */}
+              <div className="space-y-4">
+                <h2 className="text-3xl font-bold text-slate-900">
+                  Welcome, <span className="text-blue-600">{user?.full_name || "Creator"}</span>.
+                </h2>
+                <div className="bg-blue-50 p-6 rounded-xl border border-blue-100 text-slate-700 relative overflow-hidden">
+                  <div className="absolute top-0 left-0 w-1 h-full bg-blue-500"></div>
+                  <p className="text-lg italic font-medium leading-relaxed">
+                    "We are here to help you deal with the complexity of modern online life.
+                    AI is your friend, your assistant, and your force multiplier.
+                    Let's use it to take care of you and help you build abundance."
+                  </p>
+                </div>
+              </div>
+
+              {/* Call to Action */}
+              <div className="space-y-6">
+                <p className="text-slate-500">
+                  You are currently in <strong>{currentMode.toUpperCase()}</strong> mode.
+                  Ready to start your first campaign?
+                </p>
+
+                <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                  <Button
+                    onClick={async () => {
+                      // Trigger Auto-Seed
+                      try {
+                        const res = await fetch(`${API_BASE_URL}/api/seed-samples`, { method: "POST" });
+                        if (res.ok) {
+                          window.location.reload();
+                        } else {
+                          alert("Failed to load demo data.");
+                        }
+                      } catch (e) {
+                        alert("Network error loading demo.");
+                      }
+                    }}
+                    size="lg"
+                    className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-8 py-6 text-lg shadow-lg hover:shadow-xl transition-all"
+                  >
+                    <FolderInput className="w-6 h-6 mr-2" />
+                    Launch Demo Studio 🚀
+                  </Button>
+
+                  <Button
+                    onClick={() => {
+                      // Create blank
+                      const newPost = {
+                        title: "My First Campaign",
+                        hook_text: "Target Audience: Who are we talking to?\nGoal: What do we want them to do?\n\n(AI will help you write the rest...)",
+                        status: "Pending",
+                        mode: currentMode,
+                        category_primary: "General",
+                        campaign_id: selectedCampaignId
+                      };
+                      setPosts([newPost as CampaignPost]);
+                      setCurrentIndex(0);
+                    }}
+                    variant="outline"
+                    className="text-slate-500 hover:bg-slate-100"
+                  >
+                    <Plus className="w-5 h-5 mr-2" />
+                    Start Blank
+                  </Button>
+
+
+                </div>
+
+                {/* Quick Process Guide */}
+                <div className="grid grid-cols-3 gap-4 text-xs text-slate-400 font-medium pt-8 border-t border-slate-200 mt-8">
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold border border-slate-200">1</div>
+                    <span>Create & Plan</span>
+                  </div>
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold border border-slate-200">2</div>
+                    <span>AI Generate</span>
+                  </div>
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold border border-slate-200">3</div>
+                    <span>Review & Post</span>
+                  </div>
+                </div>
+
+              </div>
             </div>
           </div>
         </div>
@@ -426,8 +492,17 @@ export default function CampaignDashboard() {
             onClick={handleStarClick}
             title="Click me! ⭐"
           />
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Campaign Studio</h1>
-          <span className="text-xs text-slate-400 font-mono">v{systemInfo?.version || "2.0"}</span>
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900 leading-none">Campaign Studio</h1>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-xs text-slate-400 font-mono">v{systemInfo?.version || "2.0"}</span>
+              <span className="text-xs text-slate-300">|</span>
+              <div className="flex items-center gap-1 text-xs text-slate-600 font-medium">
+                <User className="w-3 h-3" />
+                Hi and welcome, {user?.full_name || "Guest"}
+              </div>
+            </div>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <Button
@@ -445,6 +520,14 @@ export default function CampaignDashboard() {
           <Button variant="outline" size="sm" onClick={() => setShowSettings(true)}>
             <Settings className="w-4 h-4 mr-2" />
             Settings
+          </Button>
+          <Button
+            size="sm"
+            className="bg-red-600 hover:bg-red-700 text-white border-transparent shadow-sm"
+            onClick={logout}
+          >
+            <LogOut className="w-4 h-4 mr-2" />
+            Sign Out
           </Button>
         </div>
       </div>

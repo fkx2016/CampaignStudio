@@ -21,12 +21,32 @@ export function getApiUrl(endpoint: string): string {
  */
 export const api = {
     /**
+     * Helper to get headers with Auth
+     */
+    getHeaders: (options?: RequestInit) => {
+        const headers: Record<string, string> = {
+            "Content-Type": "application/json",
+            ...options?.headers as Record<string, string>,
+        };
+
+        // Client-side only
+        if (typeof window !== "undefined") {
+            const token = localStorage.getItem("token");
+            if (token) {
+                headers["Authorization"] = `Bearer ${token}`;
+            }
+        }
+        return headers;
+    },
+
+    /**
      * GET request
      */
     get: (endpoint: string, options?: RequestInit) => {
         return fetch(getApiUrl(endpoint), {
             ...options,
             method: "GET",
+            headers: api.getHeaders(options),
         });
     },
 
@@ -37,10 +57,7 @@ export const api = {
         return fetch(getApiUrl(endpoint), {
             ...options,
             method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                ...options?.headers,
-            },
+            headers: api.getHeaders(options),
             body: data ? JSON.stringify(data) : undefined,
         });
     },
@@ -52,10 +69,7 @@ export const api = {
         return fetch(getApiUrl(endpoint), {
             ...options,
             method: "PUT",
-            headers: {
-                "Content-Type": "application/json",
-                ...options?.headers,
-            },
+            headers: api.getHeaders(options),
             body: data ? JSON.stringify(data) : undefined,
         });
     },
@@ -67,6 +81,7 @@ export const api = {
         return fetch(getApiUrl(endpoint), {
             ...options,
             method: "DELETE",
+            headers: api.getHeaders(options),
         });
     },
 
@@ -74,9 +89,14 @@ export const api = {
      * POST request with FormData (for file uploads)
      */
     postFormData: (endpoint: string, formData: FormData, options?: RequestInit) => {
+        // Special handling for FormData: Don't set Content-Type (browser does it)
+        const headers = api.getHeaders(options);
+        delete headers["Content-Type"];
+
         return fetch(getApiUrl(endpoint), {
             ...options,
             method: "POST",
+            headers: headers,
             body: formData,
         });
     },

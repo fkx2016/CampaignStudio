@@ -85,11 +85,34 @@ export default function MusicPlayer({ onClose }: { onClose: () => void }) {
                 </div>
             )}
 
-            {/* Minimized State */}
+            {/* Minimized State (Thumbnail Mode) */}
             {isMinimized && (
-                <div className="p-3 bg-white text-xs text-slate-500 flex justify-between items-center">
-                    <span>🎵 Lo-Fi Girl Radio</span>
-                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <div className="p-2 bg-slate-900 border-t border-slate-700 flex gap-3 items-center" onMouseDown={(e) => e.stopPropagation()}>
+                    {/* The "Ad / Signal" Thumbnail */}
+                    <div className="relative w-12 h-12 rounded-md overflow-hidden flex-shrink-0 group cursor-pointer" onClick={() => setIsMinimized(false)}>
+                        <img
+                            src="https://img.youtube.com/vi/jfKfPfyJRdk/mqdefault.jpg"
+                            alt="Station Thumbnail"
+                            className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
+                        />
+                        <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse shadow-lg shadow-green-500/50"></div>
+                        </div>
+                    </div>
+
+                    <div className="flex-1 overflow-hidden" onClick={() => setIsMinimized(false)}>
+                        <h4 className="text-white text-xs font-bold truncate">Focus Station</h4>
+                        <p className="text-slate-400 text-[10px] truncate">Live 24/7 • lofi hip hop radio</p>
+                    </div>
+
+                    <button className="text-slate-500 hover:text-white transition-colors" title="Volume handled in player">
+                        {/* Visual Volume Indicator (Static for now as iframe controls volume) */}
+                        <div className="flex gap-0.5 items-end h-3">
+                            <div className="w-0.5 h-1 bg-current rounded-full"></div>
+                            <div className="w-0.5 h-2 bg-current rounded-full"></div>
+                            <div className="w-0.5 h-3 bg-current rounded-full"></div>
+                        </div>
+                    </button>
                 </div>
             )}
         </Draggable>

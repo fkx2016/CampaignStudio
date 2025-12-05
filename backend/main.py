@@ -9,9 +9,10 @@ import shutil
 from pydantic import BaseModel
 
 from .database import create_db_and_tables, get_session
-from .models import CampaignPost, Platform, WorkspaceSettings, Mode, Campaign
+from .models import CampaignPost, Platform, WorkspaceSettings, Mode, Campaign, User
 from .enums import PostStatus, CampaignStatus, ModeSlug
 from . import auth
+from .auth import get_current_active_user
 
 app = FastAPI()
 
@@ -137,7 +138,7 @@ def on_startup():
 
 @app.get("/")
 def read_root():
-    return {"message": "Campaign Poster API v2.0 is Live"}
+    return {"message": "I AM LIVE AND EDITED 12345"}
 
 @app.get("/health")
 def health_check():
@@ -229,15 +230,25 @@ def create_mode(mode: Mode, session: Session = Depends(get_session)):
 # --- CAMPAIGN ROUTES ---
 
 @app.get("/api/campaigns", response_model=List[Campaign])
-def read_campaigns(mode_slug: str = None, session: Session = Depends(get_session)):
-    query = select(Campaign)
+def read_campaigns(
+    mode_slug: str = None, 
+    session: Session = Depends(get_session),
+    # current_user: User = Depends(get_current_active_user) # TEMPORARY DISABLE
+):
+    # If no user, fetch ALL (for debugging) or fetch for user ID 1?
+    # Let's try fetching ALL campaigns to see if data exists at all.
+    query = select(Campaign) 
     if mode_slug:
-        # Join with Mode to filter by slug
         query = query.join(Mode).where(Mode.slug == mode_slug)
     return session.exec(query).all()
 
 @app.post("/api/campaigns", response_model=Campaign)
-def create_campaign(campaign: Campaign, session: Session = Depends(get_session)):
+def create_campaign(
+    campaign: Campaign, 
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_active_user)
+):
+    campaign.user_id = current_user.id
     session.add(campaign)
     session.commit()
     session.refresh(campaign)
@@ -246,33 +257,58 @@ def create_campaign(campaign: Campaign, session: Session = Depends(get_session))
 # ... (Existing Upload Routes) ...
 
 @app.get("/api/posts", response_model=List[CampaignPost])
-def read_posts(mode: str = None, session: Session = Depends(get_session)):
-    query = select(CampaignPost)
+def read_posts(
+    mode: str = None, 
+    session: Session = Depends(get_session),
+    # current_user: User = Depends(get_current_active_user) # TEMPORARY DISABLE
+):
+    # Filter by user via Campaign relationship or direct user_id
+    # Since we added user_id to Post, we can use that directly
+    # query = select(CampaignPost).where(CampaignPost.user_id == current_user.id)
+    query = select(CampaignPost) # DEBUG: Fetch ALL posts
+    
     if mode:
         query = query.where(CampaignPost.mode == mode)
     posts = session.exec(query).all()
     return posts
 
 @app.get("/api/posts/{post_id}", response_model=CampaignPost)
-def read_post(post_id: int, session: Session = Depends(get_session)):
+def read_post(
+    post_id: int, 
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_active_user)
+):
     post = session.get(CampaignPost, post_id)
     if not post:
         raise HTTPException(status_code=404, detail="Post not found")
+    if post.user_id != current_user.id:
+         raise HTTPException(status_code=403, detail="Not authorized to access this post")
     return post
 
 @app.post("/api/posts", response_model=CampaignPost)
-def create_post(post: CampaignPost, session: Session = Depends(get_session)):
+def create_post(
+    post: CampaignPost, 
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_active_user)
+):
+    post.user_id = current_user.id
+    
     # Auto-link to Campaign if missing
     if not post.campaign_id:
         # 1. Find Mode
         mode_slug = post.mode or ModeSlug.EBEG
         mode = session.exec(select(Mode).where(Mode.slug == mode_slug)).first()
         if mode:
-            # 2. Find/Create Campaign
+            # 2. Find/Create Campaign (Scoped to User!)
             campaign_name = post.category_primary or "General"
-            campaign = session.exec(select(Campaign).where(Campaign.name == campaign_name)).first()
+            campaign = session.exec(
+                select(Campaign)
+                .where(Campaign.name == campaign_name)
+                .where(Campaign.user_id == current_user.id)
+            ).first()
+            
             if not campaign:
-                campaign = Campaign(name=campaign_name, mode_id=mode.id)
+                campaign = Campaign(name=campaign_name, mode_id=mode.id, user_id=current_user.id)
                 session.add(campaign)
                 session.commit()
                 session.refresh(campaign)
@@ -285,15 +321,24 @@ def create_post(post: CampaignPost, session: Session = Depends(get_session)):
     return post
 
 @app.put("/api/posts/{post_id}", response_model=CampaignPost)
-def update_post(post_id: int, post_data: CampaignPost, session: Session = Depends(get_session)):
+def update_post(
+    post_id: int, 
+    post_data: CampaignPost, 
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_active_user)
+):
     post = session.get(CampaignPost, post_id)
     if not post:
         raise HTTPException(status_code=404, detail="Post not found")
+        
+    if post.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized to edit this post")
     
     # Update fields
     post_dict = post_data.dict(exclude_unset=True)
     for key, value in post_dict.items():
-        setattr(post, key, value)
+        if key != "user_id": # Prevent transferring ownership via API for now
+            setattr(post, key, value)
         
     session.add(post)
     session.commit()
@@ -368,3 +413,150 @@ async def ingest_url(image: ImageUrl):
         
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Failed to ingest URL: {str(e)}")
+
+# --- SAMPLE DATA SEEDING ---
+
+SAMPLE_POSTS = [
+    {
+        "title": "Medical Emergency Fund",
+        "hook_text": "I never thought I'd be the one asking for help. But when the doctor said 'surgery', my world stopped. We are $5,000 short of saving my best friend's life. Here is the breakdown of costs...",
+        "mode": ModeSlug.EBEG,
+        "category_primary": "Medical",
+        "status": PostStatus.PENDING,
+        "media_image_url": "https://images.unsplash.com/photo-1584515933487-779824d29309?auto=format&fit=crop&q=80&w=1000"
+    },
+    {
+        "title": "Community Garden Initiative",
+        "hook_text": "They want to turn our park into a parking lot. Not on my watch. We have 48 hours to sign this petition and show City Hall that green spaces matter more than concrete. Will you stand with us?",
+        "mode": ModeSlug.POLITICAL,
+        "category_primary": "Local Activism",
+        "status": PostStatus.PENDING,
+        "media_image_url": "https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?auto=format&fit=crop&q=80&w=1000"
+    },
+    {
+        "title": "5 Tips for Remote Work",
+        "hook_text": "Stop working from your bed. Seriously. It's killing your back and your productivity. Here are the 5 non-negotiable rules I used to triple my output while working from home... #RemoteWork #Productivity",
+        "mode": ModeSlug.CONTENT,
+        "category_primary": "Productivity",
+        "status": PostStatus.POSTED,
+        "media_image_url": "https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&q=80&w=1000"
+    },
+    {
+        "title": "Flash Sale Announcement",
+        "hook_text": "⚠️ WARNING: This sells out every year in 20 minutes. The Black Friday bundle is LIVE. If you want the masterclass + the templates for 90% off, you need to click this link right now.",
+        "mode": ModeSlug.PROMOTION,
+        "category_primary": "Sales",
+        "status": PostStatus.PENDING,
+        "media_image_url": "https://images.unsplash.com/photo-1607083206869-4c7672e72a8a?auto=format&fit=crop&q=80&w=1000"
+    },
+    {
+        "title": "The Truth About AI",
+        "hook_text": "Everyone is scared AI will replace them. They are wrong. A *human* using AI will replace them. The train is leaving the station. Are you on board, or are you on the tracks?",
+        "mode": ModeSlug.AWARENESS,
+        "category_primary": "Tech Trends",
+        "status": PostStatus.PENDING,
+        "media_image_url": "https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&q=80&w=1000"
+    }
+]
+
+@app.post("/api/seed-samples")
+def seed_samples(session: Session = Depends(get_session)):
+    # Try to get user, or fallback
+    # We can't use Depends(get_current_active_user) because it raises 401.
+    # So we will just fetch User ID 1 (Demo User) if we want.
+    
+    # Ideally, we should require a user. But if "Launch Demo" is clicked by a guest...
+    # Let's create a temporary guest user?
+    
+    # For now, let's assume we fetch the FIRST user in DB, or create one.
+    user = session.exec(select(User)).first()
+    if not user:
+        # Create Demo User
+        user = User(email="demo@example.com", password_hash="demo", is_active=True, full_name="Demo User")
+        session.add(user)
+        session.commit()
+        session.refresh(user)
+        
+    target_user_id = user.id
+    
+    count = 0
+    
+    # 1. Fetch all Modes to look up IDs
+    modes = session.exec(select(Mode)).all()
+    mode_map = {m.slug: m for m in modes}
+
+    if not mode_map:
+        return {"message": "Modes not seeded yet", "count": 0}
+
+    for p_data in SAMPLE_POSTS:
+        # Check by Title AND User (allow multiple users to have samples)
+        existing = session.exec(
+            select(CampaignPost)
+            .where(CampaignPost.title == p_data["title"])
+            .where(CampaignPost.campaign_id.in_(
+                select(Campaign.id).where(Campaign.user_id == target_user_id)
+            ))
+        ).first()
+
+        if not existing:
+            # 2. Get the correct Mode ID
+            post_mode_slug = p_data["mode"]
+            if post_mode_slug not in mode_map:
+                continue 
+                
+            mode_obj = mode_map[post_mode_slug]
+            
+            # 3. Find/Create Campaign for THIS USER
+            camp_name = f"Sample {mode_obj.name}"
+            campaign = session.exec(
+                select(Campaign)
+                .where(Campaign.name == camp_name)
+                .where(Campaign.user_id == target_user_id)
+            ).first()
+            
+            if not campaign:
+                campaign = Campaign(
+                    name=camp_name, 
+                    mode_id=mode_obj.id, 
+                    status=CampaignStatus.ACTIVE,
+                    user_id=target_user_id  # <--- CRITICAL FIX
+                )
+                session.add(campaign)
+                session.commit()
+                session.refresh(campaign)
+            
+            # 4. Create Post
+            post = CampaignPost(**p_data)
+            post.campaign_id = campaign.id
+            session.add(post)
+            count += 1
+    
+    session.commit()
+    return {"message": f"Successfully seeded {count} sample posts!", "count": count}
+
+@app.post("/api/force-seed-platforms")
+def force_seed_platforms(session: Session = Depends(get_session)):
+    """Force re-seeding of all platforms if they are missing."""
+    count = 0
+    updated = 0
+    for p_data in INITIAL_PLATFORMS:
+        # Check by SLUG (unique identifier)
+        existing = session.exec(select(Platform).where(Platform.slug == p_data["slug"])).first()
+        if not existing:
+            platform = Platform(**p_data)
+            session.add(platform)
+            count += 1
+        else:
+            # Optional: Update existing definitions if code changed
+            for k, v in p_data.items():
+                setattr(existing, k, v)
+            session.add(existing)
+            updated += 1
+            
+    session.commit()
+    return {
+        "message": "Platform seeding complete",
+        "added": count,
+        "updated": updated,
+        "total_platforms": len(INITIAL_PLATFORMS)
+    }
