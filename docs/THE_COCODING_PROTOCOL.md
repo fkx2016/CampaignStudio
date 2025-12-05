@@ -1,7 +1,7 @@
 # 📘 The CoCoding Protocol: Beyond Vibe Coding
-**Version:** 1.0
-**Date:** 2025-12-03
-**Status:** DRAFT
+**Version:** 2.0 (The Rigor Update)
+**Date:** 2025-12-05
+**Status:** RATIFIED
 
 ---
 
@@ -15,9 +15,9 @@ We are entering the era of **CoCoding**.
 
 ---
 
-## 🏛️ The 4 Pillars of CoCoding
+## 🏛️ The 5 Pillars of CoCoding
 
-To practice CoCoding, one must adhere to four non-negotiable disciplines. These are not just "best practices"; they are the laws of physics for our software.
+To practice CoCoding, one must adhere to five non-negotiable disciplines. These are not just "best practices"; they are the laws of physics for our software.
 
 ### Pillar 1: Infrastructure as Truth (The Docker Discipline)
 *   **The Principle:** "If it doesn't run in a container, it doesn't run."
@@ -46,14 +46,29 @@ To practice CoCoding, one must adhere to four non-negotiable disciplines. These 
 *   **The Protocol:**
     1.  **Skeleton:** Infrastructure (Docker).
     2.  **Brain:** Data Models (Schema).
-    3.  **Tracer:** End-to-End Logic.
+    3.  **Tracer:** End-to-End Logic (Mock First).
     4.  **Gatekeeper:** Security & Auth.
 *   **Reference:** [Engineering Doctrine](ENGINEERING_DOCTRINE.md)
 
 ### Pillar 4: The Human Architect (The Intent Discipline)
 *   **The Principle:** "The AI has infinite energy, but zero intent. The Human supplies the Intent."
-*   **The Shift:** The human stops being a "Coder" (typing syntax) and becomes an "Architect" (defining constraints, reviewing structures, and enforcing the other 3 pillars).
+*   **The Shift:** The human stops being a "Coder" (typing syntax) and becomes an "Architect" (defining constraints, reviewing structures, and enforcing the other pillars).
 *   **The Reality:** You are not pair-programming; you are **directing**.
+
+### Pillar 5: The Gatekeeper (The Build Discipline)
+*   **The Principle:** "If it doesn't build, it doesn't leave localhost."
+*   **The Shift:** Moving from "It looks good in dev" to "It compiles in strict mode."
+*   **The Mandate:**
+    *   **Simulation First:** Before any deploy, the code must pass a "Build Simulation" (`npm run build` or `tsc`).
+    *   **Zero Tolerance:** "warnings" are errors waiting to grow up. Treat them as blockers.
+    *   **No "Blind Pushes":** Never push a branch to a shared environment (GitHub/Vercel) without verifying the build locally first.
+
+---
+
+## 🔮 Future Vision: The Hyper-Strict Era
+*   **Graph Modeling:** Future protocols will map code dependencies as a graph before writing a single line.
+*   **Code Simulation:** We do not just run code; we simulate its execution paths to predict failure states.
+*   **Formal Verification:** Mathematical proof that the code does exactly what the Architect intended.
 
 ---
 
@@ -62,7 +77,7 @@ This document is the index of our shared knowledge. As we encounter new failures
 
 *   *Chapter 1: The Great Collapse of Dec '25 (Why we need Docker)*
 *   *Chapter 2: The Type Safety Revolution (Why we need Zod)*
-*   *Chapter 3: ... (To be written)*
+*   *Chapter 3: The Build Failure of Dec 5 (Why we need The Gatekeeper)*
 
 ---
 *"We do not build to vibe. We build to last."*

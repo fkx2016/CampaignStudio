@@ -30,7 +30,10 @@ export default function MusicPlayer({ onClose }: { onClose: () => void }) {
         return url; // Return original if we can't parse (might be non-YT)
     };
 
+    const [mounted, setMounted] = useState(false);
+
     useEffect(() => {
+        setMounted(true);
         fetch(`${API_BASE_URL}/api/settings`)
             .then(res => res.json())
             .then(data => {
@@ -40,6 +43,8 @@ export default function MusicPlayer({ onClose }: { onClose: () => void }) {
             })
             .catch(err => console.error("Failed to fetch music settings", err));
     }, []);
+
+    if (!mounted) return null;
 
     return (
         <Draggable initialPos={{ x: window.innerWidth - 380, y: window.innerHeight - 280 }} className="shadow-2xl rounded-lg overflow-hidden border border-slate-200 bg-white w-[360px]">
