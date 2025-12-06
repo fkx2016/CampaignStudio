@@ -53,7 +53,7 @@ export const api = {
     /**
      * POST request with JSON body
      */
-    post: (endpoint: string, data?: any, options?: RequestInit) => {
+    post: (endpoint: string, data?: unknown, options?: RequestInit) => {
         return fetch(getApiUrl(endpoint), {
             ...options,
             method: "POST",
@@ -65,7 +65,7 @@ export const api = {
     /**
      * PUT request with JSON body
      */
-    put: (endpoint: string, data?: any, options?: RequestInit) => {
+    put: (endpoint: string, data?: unknown, options?: RequestInit) => {
         return fetch(getApiUrl(endpoint), {
             ...options,
             method: "PUT",

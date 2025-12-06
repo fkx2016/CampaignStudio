@@ -6,15 +6,36 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ExternalLink, Twitter, Facebook, Linkedin, Instagram, Youtube, Send, MessageCircle, Cloud, Flame, AlertCircle, Check, PlusCircle, X as XIcon, Globe, Mail, Zap, Rocket, Copy, Smartphone, FileText, Building, Calculator, Hash, User, Plus, Music, ChevronLeft, ChevronRight } from "lucide-react";
+import { ExternalLink, Twitter, Facebook, Linkedin, Instagram, Youtube, MessageCircle, Cloud, Flame, AlertCircle, Check, PlusCircle, X as XIcon, Globe, Mail, Zap, Rocket, Copy, Smartphone, FileText, Building, Calculator, Hash, User, Plus, Music, ChevronLeft, ChevronRight, Heart, Coffee, CreditCard, DollarSign } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ModeSwitcher from "@/components/mode-switcher/ModeSwitcher";
 import MusicPlayer from "@/components/MusicPlayer";
 import MediaEditor from "@/components/MediaEditor";
 import AITextOptimizer from "@/components/AITextOptimizer";
+import CampaignEditModal from "@/components/CampaignEditModal";
+import { CampaignPost } from "@/types/schema";
+
+// --- TYPES ---
+interface MockCampaign {
+    id: number;
+    title: string;
+    mode: string;
+    description: string;
+}
+
+interface MockPlatform {
+    name: string;
+    slug: string;
+    base_url: string;
+    intent_url: string;
+    icon: string;
+    category: string;
+    description: string;
+    path_label: string;
+}
 
 // --- MOCK DATA (CLASSIC CAMPAIGN STUDIO) ---
-const MOCK_PLATFORMS = [
+const MOCK_PLATFORMS: MockPlatform[] = [
     // --- SOCIAL (8) ---
     { name: "X (Twitter)", slug: "x", base_url: "https://twitter.com/compose/tweet", intent_url: "https://twitter.com/intent/tweet?text={text}", icon: "Twitter", category: "Social", description: "Short-form updates", path_label: "/intent/tweet" },
     { name: "LinkedIn", slug: "linkedin", base_url: "https://www.linkedin.com/feed/", intent_url: "https://www.linkedin.com/feed/?shareActive=true&text={text}", icon: "Linkedin", category: "Professional", description: "B2B & Networking", path_label: "/feed?share" },
@@ -59,7 +80,7 @@ const MOCK_PLATFORMS = [
 ];
 
 // --- CAMPAIGNS (New Hierarchy Layer) ---
-const INITAL_CAMPAIGNS = [
+const INITAL_CAMPAIGNS: MockCampaign[] = [
     // E-BEG
     { id: 1, title: "Emergency Surgery Fund", mode: "ebeg", description: "Medical emergency fundraising for family." },
     { id: 2, title: "Community Garden Project", mode: "ebeg", description: "Local green space initiative." },
@@ -77,7 +98,7 @@ const INITAL_CAMPAIGNS = [
     { id: 10, title: "IT Infrastructure", mode: "operations", description: "Server and security maintenance." },
 ];
 
-const MOCK_POSTS: any[] = [
+const MOCK_POSTS: Partial<CampaignPost>[] = [
     // --- E-BEG (Campaign 1: Surgery) ---
     { id: 1, title: "The Diagnosis", hook_text: "I never thought I'd ask for help. But we are $5k short for the operation. Please help us reach our goal.", mode: "ebeg", category_primary: "Medical", campaign_id: 1, status: "Pending", media_image_url: "https://images.unsplash.com/photo-1584515933487-779824d29309" },
     { id: 2, title: "Surgery Update", hook_text: "The date is set. We are halfway to the goal. Thank you all.", mode: "ebeg", category_primary: "Medical", campaign_id: 1, status: "Pending", media_image_url: "" },
@@ -141,6 +162,9 @@ export default function StudioPage() {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [showMusic, setShowMusic] = useState(false);
     const [isEditingMedia, setIsEditingMedia] = useState(false);
+    const [isEditingCampaign, setIsEditingCampaign] = useState(false); // State for Campaign Edit Modal
+    const [editingCampaignData, setEditingCampaignData] = useState<{ id: number, title: string } | undefined>(undefined); // Data for the modal
+    const [showDonate, setShowDonate] = useState(false);
 
     // Platform Selection State - Initialize with varied categories
     const [activePlatformSlugs, setActivePlatformSlugs] = useState<string[]>(["x", "linkedin", "email"]);
@@ -168,6 +192,7 @@ export default function StudioPage() {
     }, [posts.length, currentIndex]);
 
     const post = posts[currentIndex]; // Safe derived value
+    const activeCampaign = allCampaigns.find(c => c.id === currentCampaignId); // Get current campaign details
 
     // LOCAL STATE HANDLERS (with Auto-Save Buffer)
     const [editedTitle, setEditedTitle] = useState("");
@@ -184,25 +209,21 @@ export default function StudioPage() {
     }, [post]);
 
     // HANDLERS
-    const handleUpdatePost = (updates: any) => {
+    const handleUpdatePost = (updates: Partial<CampaignPost>) => {
         if (!post) return;
         setAllPosts(prev => prev.map(p => p.id === post.id ? { ...p, ...updates } : p));
     };
 
-    const handleNewCampaign = () => {
-        const newId = Date.now();
-        const newCamp = {
-            id: newId,
-            title: "New Campaign",
-            mode: currentMode,
-            description: "Draft campaign"
-        };
-        setAllCampaigns([...allCampaigns, newCamp]);
-        setCurrentCampaignId(newId);
+    const handleUpdateCampaign = (updates: Partial<MockCampaign>) => {
+        if (!activeCampaign) return;
+        setAllCampaigns(prev => prev.map(c => c.id === activeCampaign.id ? { ...c, ...updates } : c));
     };
 
+    // NOTE: handleNewCampaign logic moved to Modal onSave
+
+
     const handleNewPost = () => {
-        const newP = {
+        const newP: Partial<CampaignPost> = {
             id: Date.now(),
             title: "New Task",
             hook_text: "",
@@ -212,7 +233,7 @@ export default function StudioPage() {
             category_primary: "General",
             media_image_url: ""
         };
-        setAllPosts([...allPosts, newP]);
+        setAllPosts([...allPosts, newP as CampaignPost]);
         // Auto-select the new post (it will be at the end of the filtered list)
         setTimeout(() => setCurrentIndex(posts.length), 0);
     };
@@ -228,7 +249,7 @@ export default function StudioPage() {
     };
 
     // SMART LAUNCH LOGIC
-    const handleLaunch = (plat: any) => {
+    const handleLaunch = (plat: MockPlatform) => {
         if (plat.intent_url) {
             const encodedText = encodeURIComponent(editedHook);
             const encodedTitle = encodeURIComponent(editedTitle);
@@ -304,15 +325,33 @@ export default function StudioPage() {
                     <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-2 space-y-2 max-h-[150px] overflow-y-auto">
                         <div className="flex justify-between items-center px-1">
                             <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Select / Create Campaigns</label>
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-5 w-5 text-slate-400 hover:text-blue-600 hover:bg-blue-50"
-                                onClick={handleNewCampaign}
-                                title="New Campaign"
-                            >
-                                <Plus className="w-3 h-3" />
-                            </Button>
+                            <div className="flex gap-1">
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-5 w-5 text-slate-400 hover:text-blue-600 hover:bg-blue-50"
+                                    onClick={() => {
+                                        setEditingCampaignData(activeCampaign);
+                                        setIsEditingCampaign(true);
+                                    }}
+                                    title="Edit Campaign Name"
+                                    disabled={!activeCampaign}
+                                >
+                                    <FileText className="w-3 h-3" />
+                                </Button>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-5 w-5 text-slate-400 hover:text-blue-600 hover:bg-blue-50"
+                                    onClick={() => {
+                                        setEditingCampaignData({ id: 0, title: "" });
+                                        setIsEditingCampaign(true);
+                                    }}
+                                    title="New Campaign"
+                                >
+                                    <Plus className="w-3 h-3" />
+                                </Button>
+                            </div>
                         </div>
                         <div className="flex flex-col gap-1">
                             {allCampaigns.filter(c => c.mode === currentMode).map(campaign => (
@@ -389,6 +428,8 @@ export default function StudioPage() {
                         <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Select / Create / Edit / Save / a POST</label>
                     </div>
 
+
+
                     {post ? (
                         <>
                             <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-6 relative hover:shadow-md transition-shadow">
@@ -459,6 +500,7 @@ export default function StudioPage() {
                                     <div className="p-8 flex justify-center items-center bg-slate-50 min-h-[200px] cursor-pointer hover:bg-slate-100 transition-colors group" onClick={() => setIsEditingMedia(true)}>
                                         {editedImageUrl ? (
                                             <div className="relative">
+                                                {/* eslint-disable-next-line @next/next/no-img-element */}
                                                 <img src={editedImageUrl} alt="Campaign Visual" className="rounded-lg shadow-md max-h-[300px] object-cover" />
                                             </div>
                                         ) : (
@@ -523,7 +565,8 @@ export default function StudioPage() {
                                         {plat.icon === 'FileText' && <FileText className="w-3 h-3" />}
                                         {plat.icon === 'Hash' && <Hash className="w-3 h-3" />}
                                         {plat.icon === 'MessageCircle' && <MessageCircle className="w-3 h-3" />}
-                                        {!['Twitter', 'Linkedin', 'Facebook', 'Instagram', 'Youtube', 'Mail', 'Calculator', 'Building', 'FileText', 'Hash', 'MessageCircle'].includes(plat.icon) && <Globe className="w-3 h-3" />}
+                                        {plat.icon === 'Zap' && <Zap className="w-3 h-3" />}
+                                        {!['Twitter', 'Linkedin', 'Facebook', 'Instagram', 'Youtube', 'Mail', 'Calculator', 'Building', 'FileText', 'Hash', 'MessageCircle', 'Zap'].includes(plat.icon) && <Globe className="w-3 h-3" />}
                                     </div>
                                     <div className="flex items-baseline gap-2 min-w-0 overflow-hidden">
                                         <h4 className="font-bold text-slate-800 text-xs whitespace-nowrap">{plat.name}</h4>
@@ -610,6 +653,30 @@ export default function StudioPage() {
                 )
             }
 
+            {/* CAMPAIGN EDIT MODAL */}
+            <CampaignEditModal
+                open={isEditingCampaign}
+                onOpenChange={setIsEditingCampaign}
+                campaign={editingCampaignData}
+                onSave={(id, newTitle) => {
+                    if (id === 0) {
+                        // CREATE
+                        const newId = Date.now();
+                        const newCamp: MockCampaign = {
+                            id: newId,
+                            title: newTitle,
+                            mode: currentMode,
+                            description: "New Campaign"
+                        };
+                        setAllCampaigns([...allCampaigns, newCamp]);
+                        setCurrentCampaignId(newId);
+                    } else {
+                        // UPDATE
+                        setAllCampaigns(prev => prev.map(c => c.id === id ? { ...c, title: newTitle } : c));
+                    }
+                }}
+            />
+
             {/* FLOATING MUSIC PLAYER */}
             <div className={cn("fixed bottom-6 right-6 z-50 transition-all duration-300", showMusic ? "translate-y-0 opacity-100" : "translate-y-20 opacity-0 pointer-events-none")}>
                 <MusicPlayer onClose={() => setShowMusic(false)} />
@@ -627,8 +694,67 @@ export default function StudioPage() {
                         <span className="text-xs font-bold">Email the Developer</span>
                     </Button>
                 </a>
+                <div className="w-px h-6 bg-slate-200" />
+                <Button variant="ghost" className="rounded-full text-slate-600 px-4 gap-2 hover:text-pink-600 hover:bg-pink-50" onClick={() => setShowDonate(true)}>
+                    <Heart className="w-5 h-5 fill-current" />
+                    <span className="text-xs font-bold">Donate?</span>
+                </Button>
             </div>
 
-        </div >
+            {/* DONATE MODAL */}
+            {showDonate && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+                    <div className="bg-white w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 relative">
+                        <button onClick={() => setShowDonate(false)} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 z-10 bg-white/50 rounded-full p-1">
+                            <XIcon className="w-5 h-5" />
+                        </button>
+
+                        <div className="p-8 pb-4 text-center space-y-2">
+                            <div className="w-16 h-16 bg-pink-100 text-pink-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <Heart className="w-8 h-8 fill-current" />
+                            </div>
+                            <h2 className="text-2xl font-bold text-slate-900">Support the Dev</h2>
+                            <p className="text-slate-500 text-sm">If this tool saves you time, consider buying me a coffee! ☕</p>
+                        </div>
+
+                        <div className="p-6 space-y-3">
+                            <a href="https://buymeacoffee.com/tttb" target="_blank" rel="noopener noreferrer" className="block transform transition-transform hover:scale-[1.02]">
+                                <div className="bg-[#FFDD00] text-slate-900 font-bold p-3 rounded-xl flex items-center justify-between px-4 hover:shadow-lg hover:bg-[#FFEA40] transition-all">
+                                    <div className="flex items-center gap-3">
+                                        <Coffee className="w-5 h-5" />
+                                        <span>Buy Me a Coffee</span>
+                                    </div>
+                                    <ExternalLink className="w-4 h-4 opacity-50" />
+                                </div>
+                            </a>
+
+                            <a href="https://www.paypal.com/biz/profile/talktothebook" target="_blank" rel="noopener noreferrer" className="block transform transition-transform hover:scale-[1.02]">
+                                <div className="bg-[#0070BA] text-white font-bold p-3 rounded-xl flex items-center justify-between px-4 hover:shadow-lg hover:bg-[#005EA6] transition-all">
+                                    <div className="flex items-center gap-3">
+                                        <CreditCard className="w-5 h-5" />
+                                        <span>PayPal</span>
+                                    </div>
+                                    <ExternalLink className="w-4 h-4 opacity-50" />
+                                </div>
+                            </a>
+
+                            <a href="https://cash.app/$fkxcash" target="_blank" rel="noopener noreferrer" className="block transform transition-transform hover:scale-[1.02]">
+                                <div className="bg-[#00D632] text-white font-bold p-3 rounded-xl flex items-center justify-between px-4 hover:shadow-lg hover:bg-[#00C22D] transition-all">
+                                    <div className="flex items-center gap-3">
+                                        <DollarSign className="w-5 h-5" />
+                                        <span>Cash App</span>
+                                    </div>
+                                    <ExternalLink className="w-4 h-4 opacity-50" />
+                                </div>
+                            </a>
+                        </div>
+                        <div className="bg-slate-50 p-3 text-center text-xs text-slate-400">
+                            Thank you for your support! ❤️
+                        </div>
+                    </div>
+                </div>
+            )}
+
+        </div>
     );
 }

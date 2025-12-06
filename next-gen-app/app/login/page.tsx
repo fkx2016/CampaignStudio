@@ -62,9 +62,31 @@ export default function LoginPage() {
                 <h1 className="text-3xl font-bold text-slate-900 tracking-tight">
                     Welcome back
                 </h1>
-                <p className="text-slate-500 text-lg">
-                    Sign in to continue your campaign.
-                </p>
+            </div>
+
+            {/* DEV SHORTCUTS (Moved Up) */}
+            <div className="flex flex-col items-center gap-3 w-full max-w-md my-2">
+                <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Select Environment</div>
+                <div className="grid grid-cols-2 gap-3 w-full">
+                    <Link href="/studio" className="flex flex-col items-center justify-center p-4 bg-slate-900 border border-slate-900 rounded-lg hover:bg-slate-800 hover:shadow-md transition-all group">
+                        <span className="font-bold text-white">Pro Studio</span>
+                        <span className="text-xs text-slate-400">Classic Social Tool</span>
+                    </Link>
+                    <Link href="/demo" className="flex flex-col items-center justify-center p-4 bg-white border border-slate-200 rounded-lg hover:border-blue-400 hover:shadow-md transition-all group">
+                        <span className="font-bold text-slate-800 group-hover:text-blue-600">Universal OS</span>
+                        <span className="text-xs text-slate-500">Experimental Beta</span>
+                    </Link>
+                </div>
+            </div>
+
+            {/* DIVIDER */}
+            <div className="relative w-full max-w-md flex items-center justify-center my-2">
+                <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-slate-200"></div>
+                </div>
+                <div className="relative bg-slate-50 px-4 text-xs font-bold text-slate-400 uppercase tracking-widest">
+                    Or sign in to your account
+                </div>
             </div>
 
             {/* FORM CARD */}
@@ -133,20 +155,7 @@ export default function LoginPage() {
                 </form>
             </div>
 
-            {/* DEV SHORTCUTS */}
-            <div className="flex flex-col items-center gap-3 w-full max-w-md">
-                <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Development Shortcuts</div>
-                <div className="grid grid-cols-2 gap-3 w-full">
-                    <Link href="/studio" className="flex flex-col items-center justify-center p-4 bg-white border border-slate-200 rounded-lg hover:border-blue-400 hover:shadow-md transition-all group">
-                        <span className="font-bold text-slate-800 group-hover:text-blue-600">Pro Studio</span>
-                        <span className="text-xs text-slate-500">Classic Social Tool</span>
-                    </Link>
-                    <Link href="/demo" className="flex flex-col items-center justify-center p-4 bg-slate-900 border border-slate-900 rounded-lg hover:bg-slate-800 hover:shadow-md transition-all group">
-                        <span className="font-bold text-white">Universal OS</span>
-                        <span className="text-xs text-slate-400">Experimental Beta</span>
-                    </Link>
-                </div>
-            </div>
+
         </div>
     );
 }

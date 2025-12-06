@@ -62,7 +62,19 @@ To practice CoCoding, one must adhere to five non-negotiable disciplines. These 
     *   **Simulation First:** Before any deploy, the code must pass a "Build Simulation" (`npm run build` or `tsc`).
     *   **Zero Tolerance:** "warnings" are errors waiting to grow up. Treat them as blockers.
     *   **No "Blind Pushes":** Never push a branch to a shared environment (GitHub/Vercel) without verifying the build locally first.
-
+66: 
+67:     > **The Gatekeeper Alliance: Lint vs. Zod**
+68:     >
+69:     > You asked: *"Do they work together or are they competition?"*
+70:     > **Answer: They are best friends.**
+71:     >
+72:     > *   **Lint (Static Blueprint Check):** Checks the code *as you write it*. It catches typos, bad logic, and sloppiness (e.g., "You forgot to use this variable").
+73:     >     *   *Role:* Protects the Developer from themselves.
+74:     > *   **Zod (Runtime Security Guard):** Checks the data *as the app runs*. It validates unknown inputs from users or APIs (e.g., "This user ID must be a number, not text").
+75:     >     *   *Role:* Protects the App from the outside world.
+76:     >
+77:     > **Together = Full-Stack Strictness.**
+78:
 ---
 
 ## 🔮 Future Vision: The Hyper-Strict Era

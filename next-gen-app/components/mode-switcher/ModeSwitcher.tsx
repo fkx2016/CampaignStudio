@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, ChevronDown, FolderOpen } from "lucide-react";
+import { Plus, ChevronDown, FolderOpen, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { API_BASE_URL } from "@/lib/api";
 import CreateModeModal from "./CreateModeModal";
@@ -18,6 +18,7 @@ const DEFAULT_MODES: (Mode & { theme?: string })[] = [
 export default function ModeSwitcher({ currentMode, onModeChange }: { currentMode: string, onModeChange: (mode: string) => void }) {
   const [modes, setModes] = useState<Mode[]>([]);
   const [showCreateMode, setShowCreateMode] = useState(false);
+  const [editingMode, setEditingMode] = useState<Mode | undefined>(undefined);
 
   useEffect(() => {
     fetch(`${API_BASE_URL}/api/modes`)
@@ -45,16 +46,49 @@ export default function ModeSwitcher({ currentMode, onModeChange }: { currentMod
             </option>
           ))}
         </select>
-        <button onClick={() => setShowCreateMode(true)} className="text-slate-400 hover:text-blue-600">
+        <button
+          onClick={() => {
+            const modeToEdit = modes.find(m => m.slug === currentMode);
+            if (modeToEdit) {
+              setEditingMode(modeToEdit);
+              setShowCreateMode(true);
+            }
+          }}
+          className="text-slate-400 hover:text-blue-600"
+          title="Edit Current Mode"
+        >
+          <FileText className="w-4 h-4" />
+        </button>
+        <button
+          onClick={() => {
+            setEditingMode(undefined);
+            setShowCreateMode(true);
+          }}
+          className="text-slate-400 hover:text-blue-600"
+        >
           <Plus className="w-4 h-4" />
         </button>
       </div>
 
-      <CreateModeModal
-        open={showCreateMode}
-        onOpenChange={setShowCreateMode}
-        onCreate={(m) => console.log("Create modal not wired for full demo")}
-      />
+      {showCreateMode && (
+        <CreateModeModal
+          open={showCreateMode}
+          onOpenChange={setShowCreateMode}
+          mode={editingMode}
+          onSave={(savedMode) => {
+            if (editingMode) {
+              // Edit existing
+              setModes(prev => prev.map(m => m.slug === editingMode.slug ? { ...m, ...savedMode } : m));
+            } else {
+              // Create new
+              setModes(prev => [...prev, savedMode]);
+              // Optionally select the new mode immediately
+              onModeChange(savedMode.slug);
+            }
+            console.log("Mode saved:", savedMode);
+          }}
+        />
+      )}
     </div>
   );
 }
