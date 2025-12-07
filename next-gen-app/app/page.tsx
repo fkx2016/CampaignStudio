@@ -19,6 +19,59 @@ import {
 } from "lucide-react";
 import { API_BASE_URL } from "@/lib/api";
 
+// Mission statement carousel with micro-sponsorships AND lottery!
+interface SponsoredStatement {
+    text: string;
+    sponsor?: {
+        name: string;
+        logo: string;
+        url: string;
+    };
+    isLucky?: boolean;
+    reward?: number;
+}
+
+const MISSION_STATEMENTS: SponsoredStatement[] = [
+    {
+        text: "We're Going to Make You Money",
+    },
+    {
+        text: "Stop Being the Product. Start Being the Profit",
+    },
+    {
+        text: "They've Been Farming You. Time to Farm Them",
+    },
+    {
+        text: "Your Content Should Pay You, Not Just Platforms",
+    },
+    {
+        text: "Turn Every Campaign Into Revenue",
+        sponsor: {
+            name: "Stripe",
+            logo: "💳",
+            url: "https://stripe.com"
+        }
+    },
+    {
+        text: "The Internet Wants Your Money. We Help You Take Theirs"
+    }
+];
+
+// Lottery logic - 5% chance to win!
+const getLuckyStatement = (): SponsoredStatement => {
+    const isLucky = Math.random() < 0.05; // 5% chance
+
+    if (isLucky) {
+        return {
+            text: "🎰 LUCKY YOU! We Just Put $1 in Your Account!",
+            isLucky: true,
+            reward: 1.00
+        };
+    }
+
+    return MISSION_STATEMENTS[Math.floor(Math.random() * MISSION_STATEMENTS.length)];
+};
+
 export default function LandingPage() {
     const router = useRouter();
     const [email, setEmail] = useState("");
@@ -26,6 +79,9 @@ export default function LandingPage() {
     const [fullName, setFullName] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+
+    // Pick a statement (with lottery chance!)
+    const [missionStatement] = useState(() => getLuckyStatement());
 
     const handleSignup = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -95,9 +151,30 @@ export default function LandingPage() {
                 <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-12 items-center">
                     {/* Left: Hero Content */}
                     <div className="space-y-8">
-                        <div className="inline-flex items-center gap-2 bg-green-500/20 text-green-300 px-4 py-2 rounded-full text-sm font-medium border border-green-500/30">
+                        <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium border ${missionStatement.isLucky
+                                ? 'bg-gradient-to-r from-yellow-500/30 to-orange-500/30 text-yellow-200 border-yellow-400/50 animate-pulse shadow-lg shadow-yellow-500/50'
+                                : 'bg-green-500/20 text-green-300 border-green-500/30'
+                            }`}>
                             <Sparkles className="w-4 h-4" />
-                            <span>We&apos;re Going to Make You Money</span>
+                            <span className={missionStatement.isLucky ? 'font-bold' : ''}>{missionStatement.text}</span>
+                            {missionStatement.sponsor && (
+                                <>
+                                    <span className="text-green-400/50">|</span>
+                                    <a
+                                        href={missionStatement.sponsor.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center gap-1 hover:text-green-200 transition-colors"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            // Track click analytics here
+                                        }}
+                                    >
+                                        <span>{missionStatement.sponsor.logo}</span>
+                                        <span className="text-xs opacity-75">{missionStatement.sponsor.name}</span>
+                                    </a>
+                                </>
+                            )}
                         </div>
 
                         <h1 className="text-5xl md:text-6xl font-bold text-white leading-tight">
@@ -319,7 +396,7 @@ export default function LandingPage() {
                             </Button>
                         </Link>
                         <Link href="/studio">
-                            <Button variant="outline" className="h-14 px-8 border-white/30 text-white hover:bg-white/10 font-bold text-lg">
+                            <Button className="h-14 px-8 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-bold text-lg shadow-lg border-2 border-green-400/50">
                                 <Globe className="w-5 h-5 mr-2" />
                                 Try Studio
                             </Button>
