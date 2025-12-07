@@ -4,6 +4,7 @@
  */
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8001";
+console.log("🚀 API_BASE_URL Configured as:", API_BASE_URL);
 
 /**
  * Get the full API URL for an endpoint
