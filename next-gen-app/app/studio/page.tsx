@@ -322,14 +322,27 @@ export default function StudioPage() {
                     </div>
 
                     {/* CAMPAIGN SELECTOR */}
-                    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-2 space-y-2 max-h-[150px] overflow-y-auto">
-                        <div className="flex justify-between items-center px-1">
-                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Select / Create Campaigns</label>
-                            <div className="flex gap-1">
+                    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-3 flex flex-col gap-2">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2 flex-1">
+                                <FileText className="w-4 h-4 text-slate-400" />
+                                <select
+                                    className="flex-1 bg-transparent text-sm font-bold text-slate-700 focus:outline-none cursor-pointer"
+                                    value={currentCampaignId}
+                                    onChange={(e) => setCurrentCampaignId(Number(e.target.value))}
+                                >
+                                    {allCampaigns.filter(c => c.mode === currentMode).map(campaign => (
+                                        <option key={campaign.id} value={campaign.id}>
+                                            {campaign.title}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className="flex items-center gap-1">
                                 <Button
                                     variant="ghost"
                                     size="icon"
-                                    className="h-5 w-5 text-slate-400 hover:text-blue-600 hover:bg-blue-50"
+                                    className="h-6 w-6 text-slate-400 hover:text-blue-600 hover:bg-blue-50"
                                     onClick={() => {
                                         setEditingCampaignData(activeCampaign);
                                         setIsEditingCampaign(true);
@@ -342,7 +355,7 @@ export default function StudioPage() {
                                 <Button
                                     variant="ghost"
                                     size="icon"
-                                    className="h-5 w-5 text-slate-400 hover:text-blue-600 hover:bg-blue-50"
+                                    className="h-6 w-6 text-slate-400 hover:text-blue-600 hover:bg-blue-50"
                                     onClick={() => {
                                         setEditingCampaignData({ id: 0, title: "" });
                                         setIsEditingCampaign(true);
@@ -352,23 +365,6 @@ export default function StudioPage() {
                                     <Plus className="w-3 h-3" />
                                 </Button>
                             </div>
-                        </div>
-                        <div className="flex flex-col gap-1">
-                            {allCampaigns.filter(c => c.mode === currentMode).map(campaign => (
-                                <button
-                                    key={campaign.id}
-                                    onClick={() => setCurrentCampaignId(campaign.id)}
-                                    className={cn(
-                                        "text-left px-2 py-2 rounded text-xs font-medium transition-colors flex justify-between items-center group",
-                                        currentCampaignId === campaign.id
-                                            ? "bg-slate-100 text-slate-900 font-bold border-l-2 border-blue-500"
-                                            : "text-slate-500 hover:bg-slate-50 hover:text-slate-700"
-                                    )}
-                                >
-                                    <span className="truncate">{campaign.title}</span>
-                                    {currentCampaignId === campaign.id && <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />}
-                                </button>
-                            ))}
                         </div>
                     </div>
 
