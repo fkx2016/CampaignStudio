@@ -375,9 +375,11 @@ export default function DemoDashboard() {
             </div>
 
             {/* FLOATING MUSIC PLAYER */}
-            <div className={cn("fixed bottom-6 right-6 z-50 transition-all duration-300", showMusic ? "translate-y-0 opacity-100" : "translate-y-20 opacity-0 pointer-events-none")}>
-                <MusicPlayer onClose={() => setShowMusic(false)} />
-            </div>
+            {showMusic && (
+                <div className="fixed bottom-24 right-6 z-[9999]">
+                    <MusicPlayer onClose={() => setShowMusic(false)} />
+                </div>
+            )}
             <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-md rounded-full shadow-2xl border border-slate-200 p-2 flex items-center gap-2 z-40">
                 <Button variant={showMusic ? "secondary" : "ghost"} size="icon" className="rounded-full text-slate-600" onClick={() => setShowMusic(!showMusic)}>
                     <Music className="w-5 h-5" />

@@ -106,10 +106,10 @@ export default function Draggable({ children, initialPos = { x: 0, y: 0 }, class
             ref={elementRef}
             className={className}
             style={{
-                position: "absolute", // Critical: Relative to parent container
+                position: "fixed", // Changed to fixed for viewport-relative positioning
                 left: position.x,
                 top: position.y,
-                zIndex: 50,
+                zIndex: 9999, // Increased z-index to ensure it's on top
                 cursor: isDragging ? "grabbing" : "grab",
                 touchAction: "none"
             }}

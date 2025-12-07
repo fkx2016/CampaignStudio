@@ -40,7 +40,7 @@ export default function LoginPage() {
 
             // For now, redirect to the new "Pro" Dashboard (which is currently the Demo page, 
             // but eventually this will be the real authorized dashboard).
-            router.push("/demo");
+            router.push("/dashboard");
 
         } catch (err) {
             setError("Login failed. Please try again.");

@@ -1,3 +1,9 @@
+import sys
+from pathlib import Path
+
+# Add parent directory to path so we can import from backend
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
 import json
 from sqlmodel import Session, select
 from backend.database import engine
@@ -8,7 +14,8 @@ def restore_original_campaign():
     print("🚀 Starting Restoration of Original Campaign...")
     
     # 1. Load JSON Data
-    with open("titles_and_hooks.json", "r", encoding="utf-8") as f:
+    json_path = Path(__file__).parent.parent / "titles_and_hooks.json"
+    with open(json_path, "r", encoding="utf-8") as f:
         posts_data = json.load(f)
         
     print(f"📦 Found {len(posts_data)} posts in source file.")
