@@ -17,7 +17,7 @@ from .auth import get_current_active_user
 app = FastAPI()
 
 # Include Auth Router
-app.include_router(auth.router)
+app.include_router(auth.router, prefix="/auth")
 
 # Allow Frontend to talk to Backend
 # Get allowed origins from environment variable, default to "*" for dev convenience if not set

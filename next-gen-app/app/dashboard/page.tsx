@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/context/NewAuthContext";
 import { useRouter } from "next/navigation";
 import { CampaignPost, Campaign, Mode, Platform } from "@/types/schema";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

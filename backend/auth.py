@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Optional, List
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError, jwt
@@ -51,6 +51,7 @@ class UserRead(BaseModel):
     email: str
     full_name: Optional[str] = None
     is_active: bool
+    is_superuser: bool = False
 
 # --- DEPENDENCIES ---
 async def get_current_user(token: str = Depends(oauth2_scheme), session: Session = Depends(get_session)):
@@ -75,6 +76,11 @@ async def get_current_user(token: str = Depends(oauth2_scheme), session: Session
 async def get_current_active_user(current_user: User = Depends(get_current_user)):
     if not current_user.is_active:
         raise HTTPException(status_code=400, detail="Inactive user")
+    return current_user
+
+async def get_current_admin_user(current_user: User = Depends(get_current_active_user)):
+    if not current_user.is_superuser:
+        raise HTTPException(status_code=403, detail="Not authorized")
     return current_user
 
 # --- ROUTER ---
@@ -138,6 +144,14 @@ def forgot_password(request: ForgotPasswordRequest, session: Session = Depends(g
     
     # Generate a reset token (reusing access token logic for MVP, but with shorter expiry)
     reset_token = create_access_token(data={"sub": user.email, "type": "reset"}, expires_delta=timedelta(minutes=15))
+
+    # In a real app, send email here. For MVP, we just return the token so dev can test.
+    return {"message": "Reset link generated (check console/logs in dev)", "dev_token": reset_token}
+
+@router.get("/users", response_model=List[UserRead])
+def read_users(skip: int = 0, limit: int = 100, current_user: User = Depends(get_current_admin_user), session: Session = Depends(get_session)):
+    users = session.exec(select(User).offset(skip).limit(limit)).all()
+    return users
     
     # MOCK EMAIL SENDING
     print(f"\n==================================================")

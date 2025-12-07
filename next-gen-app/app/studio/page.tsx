@@ -6,7 +6,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ExternalLink, Twitter, Facebook, Linkedin, Instagram, Youtube, MessageCircle, Cloud, Flame, AlertCircle, Check, PlusCircle, X as XIcon, Globe, Mail, Zap, Rocket, Copy, Smartphone, FileText, Building, Calculator, Hash, User, Plus, Music, ChevronLeft, ChevronRight, Heart, Coffee, CreditCard, DollarSign } from "lucide-react";
+import { ExternalLink, Twitter, Facebook, Linkedin, Instagram, Youtube, MessageCircle, Cloud, Flame, AlertCircle, Check, PlusCircle, X as XIcon, Globe, Mail, Zap, Rocket, Copy, Smartphone, FileText, Building, Calculator, Hash, User, Plus, Music, ChevronLeft, ChevronRight, Heart, Coffee, CreditCard, DollarSign, Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ModeSwitcher from "@/components/mode-switcher/ModeSwitcher";
 import MusicPlayer from "@/components/MusicPlayer";
@@ -14,6 +14,15 @@ import MediaEditor from "@/components/MediaEditor";
 import AITextOptimizer from "@/components/AITextOptimizer";
 import CampaignEditModal from "@/components/CampaignEditModal";
 import { CampaignPost } from "@/types/schema";
+import { API_BASE_URL } from "@/lib/api";
+
+interface UserProfile {
+    id: number;
+    email: string;
+    full_name: string;
+    is_active: boolean;
+    is_superuser: boolean;
+}
 
 // --- TYPES ---
 interface MockCampaign {
@@ -170,8 +179,34 @@ export default function StudioPage() {
     const [activePlatformSlugs, setActivePlatformSlugs] = useState<string[]>(["x", "linkedin", "email"]);
     const [showPlatformSelector, setShowPlatformSelector] = useState(false);
 
-    // Fake User
-    const user = { full_name: "Visitor" };
+    // REAL USER STATE
+    const [user, setUser] = useState<UserProfile | null>(null);
+
+    useEffect(() => {
+        const fetchUser = async () => {
+            const token = localStorage.getItem("token");
+            if (!token) {
+                // Allow mock mode for dev or redirect
+                // router.push("/login");
+                setUser({ id: 0, email: "visitor@demo.com", full_name: "Visitor", is_active: true, is_superuser: false });
+                return;
+            }
+            try {
+                const res = await fetch(`${API_BASE_URL}/auth/users/me`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    setUser(data);
+                } else {
+                    setUser({ id: 0, email: "visitor@demo.com", full_name: "Visitor", is_active: true, is_superuser: false });
+                }
+            } catch (err) {
+                setUser({ id: 0, email: "visitor@demo.com", full_name: "Visitor", is_active: true, is_superuser: false });
+            }
+        };
+        fetchUser();
+    }, []);
 
     // Update Campaign Selection when Mode Changes
     useEffect(() => {
@@ -294,8 +329,15 @@ export default function StudioPage() {
 
                 <div className="flex items-center gap-4">
                     <span className="hidden md:inline text-sm font-medium text-slate-600">
-                        Hi, <span className="text-slate-900 font-bold">{user.full_name}</span>
+                        Hi, <span className="text-slate-900 font-bold">{user?.full_name || "Visitor"}</span>
                     </span>
+                    {user?.is_superuser && (
+                        <Link href="/admin">
+                            <Button size="sm" variant="outline" className="text-purple-600 border-purple-200 bg-purple-50 hover:bg-purple-100">
+                                <Shield className="w-4 h-4 mr-1" /> Admin
+                            </Button>
+                        </Link>
+                    )}
                     <Link href="/pricing">
                         <Button size="sm" className="bg-gradient-to-r from-amber-400 to-orange-500 text-white border-0 font-bold shadow-md hover:shadow-lg hover:from-amber-500 hover:to-orange-600">
                             <Zap className="w-4 h-4 mr-1 fill-current" /> Upgrade to Pro

@@ -9,6 +9,7 @@ interface User {
     email: string;
     full_name?: string;
     is_active: boolean;
+    is_superuser?: boolean;
 }
 
 interface AuthContextType {
@@ -29,6 +30,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     useEffect(() => {
         // Check for token on mount
         const token = localStorage.getItem("token");
+
         if (token) {
             if (token === "demo-token") {
                 // Restore demo session
@@ -50,8 +52,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const fetchUser = async (token: string) => {
         try {
-            console.log("AuthContext: Checking user with token", token.substring(0, 10) + "...");
-
             // Try primary path
             let res = await fetch(`${API_BASE_URL}/auth/users/me`, {
                 headers: { Authorization: `Bearer ${token}` },
@@ -59,7 +59,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
             // If 404, try legacy path
             if (res.status === 404) {
-                console.warn("AuthContext: /auth/users/me -> 404. Trying /users/me...");
                 res = await fetch(`${API_BASE_URL}/users/me`, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
@@ -67,17 +66,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
             if (res.ok) {
                 const userData = await res.json();
-                console.log("AuthContext: User Verified!", userData);
                 setUser(userData);
             } else {
-                const text = await res.text();
-                console.error("AuthContext: Fetch Failed", res.status, text);
-                alert(`Login Failed: Server returned ${res.status}. Check console.`);
                 logout(); // Invalid token
             }
         } catch (err) {
             console.error("AuthContext: Network Error", err);
-            // alert("Login Error: Network issue. Check console."); // Fail silently-ish to avoid panic loop
             logout();
         } finally {
             setLoading(false);
@@ -87,7 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const login = (token: string) => {
         localStorage.setItem("token", token);
         fetchUser(token);
-        router.push("/");
+        router.push("/studio"); // Redirect to Studio/Dashboard
     };
 
     const loginAsDemo = () => {
@@ -99,13 +93,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         };
         localStorage.setItem("token", "demo-token");
         setUser(demoUser);
-        router.push("/");
+        router.push("/studio");
     };
 
     const logout = () => {
         localStorage.removeItem("token");
         setUser(null);
-        router.push("/login");
+        router.push("/login"); // Redirect to Welcome Back
     };
 
     return (

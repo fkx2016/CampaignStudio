@@ -4,12 +4,14 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { API_BASE_URL } from "@/lib/api";
+import { useAuth } from "@/context/NewAuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2, AlertCircle, Eye, EyeOff } from "lucide-react";
 
 export default function LoginPage() {
     const router = useRouter();
+    const { login } = useAuth();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
@@ -23,24 +25,27 @@ export default function LoginPage() {
 
         try {
             /* 
-             * REAL AUTH LOGIC (Currently Disabled for Demo/Prototype Phase)
-             * 
-             * const res = await fetch(`${API_BASE_URL}/token`, {
-             *     method: "POST",
-             *     headers: { "Content-Type": "application/x-www-form-urlencoded" },
-             *     body: new URLSearchParams({ username: email, password }),
-             * });
-             * if (!res.ok) throw new Error("Invalid credentials");
-             * const data = await res.json();
-             * localStorage.setItem("token", data.access_token);
+             * REAL AUTH LOGIC ENABLED
              */
+            const res = await fetch(`${API_BASE_URL}/auth/token`, {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: new URLSearchParams({ username: email, password }),
+            });
 
-            // Mock Success
-            await new Promise(r => setTimeout(r, 1000));
+            if (!res.ok) {
+                const text = await res.text();
+                console.error("Login Failed:", text);
+                throw new Error("Invalid credentials");
+            }
 
-            // For now, redirect to the new "Pro" Dashboard (which is currently the Demo page, 
-            // but eventually this will be the real authorized dashboard).
-            router.push("/dashboard");
+            const data = await res.json();
+            console.log("Login Success! Token:", data.access_token.substring(0, 10));
+            // localStorage.setItem("token", data.access_token);
+
+            // Redirect via Context
+            login(data.access_token);
+            // router.push("/dashboard");
 
         } catch (err) {
             setError("Login failed. Please try again.");
