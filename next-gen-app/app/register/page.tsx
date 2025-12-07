@@ -23,12 +23,26 @@ export default function RegisterPage() {
         setError("");
 
         try {
-            // Mock Success for Design Review
-            await new Promise(r => setTimeout(r, 1500));
-            router.push("/login");
+            const res = await fetch(`${API_BASE_URL}/auth/register`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    email,
+                    password,
+                    full_name: fullName
+                }),
+            });
 
-        } catch (err: unknown) {
-            setError("Registration currently disabled.");
+            if (!res.ok) {
+                const errorData = await res.json();
+                throw new Error(errorData.detail || "Registration failed");
+            }
+
+            // Success! Redirect to login
+            router.push("/login?registered=true");
+
+        } catch (err: any) {
+            setError(err.message || "Something went wrong. Please try again.");
         } finally {
             setLoading(false);
         }
