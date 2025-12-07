@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -92,16 +92,18 @@ export default function LandingPage() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
 
-    // Check if user is authenticated
-    const [isAuthenticated] = useState(() => {
-        if (typeof window !== 'undefined') {
-            return !!localStorage.getItem('token');
-        }
-        return false;
-    });
+    // START HYDRATION FIX
+    // Start with a safe default (first statement) to match server
+    const [missionStatement, setMissionStatement] = useState<SponsoredStatement>(MISSION_STATEMENTS[0]);
+    const [isClient, setIsClient] = useState(false);
 
-    // Pick a statement (GUARANTEED WIN for anonymous users!)
-    const [missionStatement] = useState(() => getLuckyStatement(isAuthenticated));
+    useEffect(() => {
+        setIsClient(true);
+        const hasToken = !!localStorage.getItem('token');
+        // Only run lottery logic on the client
+        setMissionStatement(getLuckyStatement(hasToken));
+    }, []);
+    // END HYDRATION FIX
 
     const handleSignup = async (e: React.FormEvent) => {
         e.preventDefault();
