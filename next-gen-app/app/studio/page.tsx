@@ -284,9 +284,11 @@ export default function StudioPage() {
             {/* HEADER */}
             <header className="fixed top-0 left-0 right-0 h-16 bg-white/80 backdrop-blur-md border-b border-slate-200 z-50 flex items-center justify-between px-6 shadow-sm">
                 <div className="flex items-center gap-3">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src="/ChristmasStar.png" alt="Logo" className="w-8 h-8 object-contain" />
-                    <span className="font-bold text-xl tracking-tight bg-gradient-to-r from-blue-700 to-purple-700 bg-clip-text text-transparent">CampaignStudio</span>
+                    <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src="/ChristmasStar.png" alt="Logo" className="w-8 h-8 object-contain" />
+                        <span className="font-bold text-xl tracking-tight bg-gradient-to-r from-blue-700 to-purple-700 bg-clip-text text-transparent">CampaignStudio</span>
+                    </Link>
                     <span className="hidden sm:inline-flex px-2 py-0.5 bg-green-100 text-green-700 text-xs font-bold uppercase tracking-wider rounded-full border border-green-200">Pro Studio</span>
                 </div>
 

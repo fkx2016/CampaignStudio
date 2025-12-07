@@ -29,6 +29,7 @@ interface SponsoredStatement {
     };
     isLucky?: boolean;
     reward?: number;
+    requiresAuth?: boolean; // For anonymous user wins
 }
 
 const MISSION_STATEMENTS: SponsoredStatement[] = [
@@ -57,9 +58,20 @@ const MISSION_STATEMENTS: SponsoredStatement[] = [
     }
 ];
 
-// Lottery logic - 5% chance to win!
-const getLuckyStatement = (): SponsoredStatement => {
-    const isLucky = Math.random() < 0.05; // 5% chance
+// Lottery logic - GUARANTEED WIN for anonymous users!
+const getLuckyStatement = (isAuthenticated: boolean): SponsoredStatement => {
+    // Anonymous users ALWAYS win (but must sign up to claim)
+    if (!isAuthenticated) {
+        return {
+            text: "🎰 YOU WON $1.00! Sign up to claim your prize!",
+            isLucky: true,
+            reward: 1.00,
+            requiresAuth: true
+        };
+    }
+
+    // Logged-in users: 5% chance to win
+    const isLucky = Math.random() < 0.05;
 
     if (isLucky) {
         return {
@@ -80,8 +92,16 @@ export default function LandingPage() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
 
-    // Pick a statement (with lottery chance!)
-    const [missionStatement] = useState(() => getLuckyStatement());
+    // Check if user is authenticated
+    const [isAuthenticated] = useState(() => {
+        if (typeof window !== 'undefined') {
+            return !!localStorage.getItem('token');
+        }
+        return false;
+    });
+
+    // Pick a statement (GUARANTEED WIN for anonymous users!)
+    const [missionStatement] = useState(() => getLuckyStatement(isAuthenticated));
 
     const handleSignup = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -133,11 +153,11 @@ export default function LandingPage() {
             {/* Navigation */}
             <nav className="fixed top-0 left-0 right-0 z-50 bg-white/10 backdrop-blur-md border-b border-white/10">
                 <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
+                    <Link href="/" className="flex items-center gap-2 hover:opacity-90 transition-opacity">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src="/ChristmasStar.png" alt="Logo" className="w-8 h-8" />
                         <span className="text-2xl font-bold text-white">CampaignStudio</span>
-                    </div>
+                    </Link>
                     <Link href="/login">
                         <Button variant="ghost" className="text-white hover:bg-white/10">
                             Sign In
@@ -152,8 +172,8 @@ export default function LandingPage() {
                     {/* Left: Hero Content */}
                     <div className="space-y-8">
                         <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium border ${missionStatement.isLucky
-                                ? 'bg-gradient-to-r from-yellow-500/30 to-orange-500/30 text-yellow-200 border-yellow-400/50 animate-pulse shadow-lg shadow-yellow-500/50'
-                                : 'bg-green-500/20 text-green-300 border-green-500/30'
+                            ? 'bg-gradient-to-r from-yellow-500/30 to-orange-500/30 text-yellow-200 border-yellow-400/50 animate-pulse shadow-lg shadow-yellow-500/50'
+                            : 'bg-green-500/20 text-green-300 border-green-500/30'
                             }`}>
                             <Sparkles className="w-4 h-4" />
                             <span className={missionStatement.isLucky ? 'font-bold' : ''}>{missionStatement.text}</span>
@@ -176,6 +196,24 @@ export default function LandingPage() {
                                 </>
                             )}
                         </div>
+
+                        {/* Special CTA for Anonymous Winners */}
+                        {missionStatement.requiresAuth && (
+                            <div className="bg-gradient-to-r from-red-500/20 to-pink-500/20 border-2 border-red-400/50 rounded-xl p-4 animate-pulse">
+                                <p className="text-white font-bold text-lg mb-2">
+                                    ⚠️ You're not registered! We can't send you the $1.00
+                                </p>
+                                <p className="text-slate-300 text-sm mb-3">
+                                    Sign up below in 60 seconds to claim your prize before it expires!
+                                </p>
+                                <button
+                                    onClick={() => document.getElementById('signup')?.scrollIntoView({ behavior: 'smooth' })}
+                                    className="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg transition-colors"
+                                >
+                                    Claim My $1.00 Now! ⏱️
+                                </button>
+                            </div>
+                        )}
 
                         <h1 className="text-5xl md:text-6xl font-bold text-white leading-tight">
                             Turn Every Campaign Into
@@ -207,7 +245,7 @@ export default function LandingPage() {
                     </div>
 
                     {/* Right: Signup Form */}
-                    <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 border border-white/20 shadow-2xl">
+                    <div id="signup" className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 border border-white/20 shadow-2xl">
                         <div className="text-center mb-6">
                             <h2 className="text-2xl font-bold text-white mb-2">Start Free Today</h2>
                             <p className="text-slate-300">Join thousands of creators already using CampaignStudio</p>
