@@ -1,0 +1,21 @@
+﻿{
+  "name": "Campaign Studio (Fleet)",
+  "dockerComposeFile": [
+    "../docker-compose.yml",
+    "docker-compose.dev.yml"
+  ],
+  "service": "dev_env",
+  "workspaceFolder": "/workspaces/CampaignStudio",
+  "remoteUser": "root",
+  "customizations": {
+    "vscode": {
+      "settings": {},
+      "extensions": [
+        "ms-python.python",
+        "ms-azuretools.vscode-docker",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode"
+      ]
+    }
+  }
+}

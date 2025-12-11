@@ -1,0 +1,12 @@
+version: '3.8'
+services:
+  dev_env:
+    build:
+      # Context . is the Project Root (CampaignStudio)
+      context: .
+      # We point down into the folder to find the file
+      dockerfile: .devcontainer/Dockerfile.toolbox
+    volumes:
+      - .:/workspaces/CampaignStudio:cached
+    command: sleep infinity
+    network_mode: service:db

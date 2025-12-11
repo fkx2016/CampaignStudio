@@ -24,6 +24,7 @@
 - [x] Access Admin Dashboard
 
 ## 🔜 Next Steps
-1. Remove debug alerts from `NewAuthContext.tsx`.
-2. Implement Analytics Tracking (per `PRD_GROWTH_ANALYTICS.md`).
-3. Refine Admin Dashboard UI.
+1. **Docker Deep Dive:** Explain the "Universal Package Delivery System" concept (Dev Containers, Images vs. Code, Host Binding).
+2. **Cloud Fix:** Troubleshoot Railway/Vercel CORS issue (likely trailing slash or header stripping).
+3. Remove debug alerts from `NewAuthContext.tsx` (Done locally, verify online).
+4. Implement Analytics Tracking (per `PRD_GROWTH_ANALYTICS.md`).
