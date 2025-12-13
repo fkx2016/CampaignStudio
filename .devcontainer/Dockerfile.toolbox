@@ -1,18 +1,12 @@
-﻿# START with Python (The Brain)
 FROM python:3.11-bullseye
 
-# INSTALL Node.js (The Face) - Manual Install
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
     apt-get install -y nodejs
 
-# INSTALL Global Tools
 RUN npm install -g typescript ts-node
 
-# CLEAN UP to save space
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# SET Working Directory
 WORKDIR /workspaces/CampaignStudio
 
-# DO NOTHING (Sleep) so the container stays alive for the user
 CMD ["sleep", "infinity"]

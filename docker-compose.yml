@@ -16,7 +16,7 @@ services:
       context: .
       dockerfile: backend/Dockerfile
     volumes:
-      - ./backend:/app/backend
+      - .:/app
     ports:
       - "8001:8001"
     environment:

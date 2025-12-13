@@ -2,11 +2,11 @@ version: '3.8'
 services:
   dev_env:
     build:
-      # Context . is the Project Root (CampaignStudio)
+      # CHANGE 1: Use a single dot "." (This is CampaignStudio folder)
       context: .
-      # We point down into the folder to find the file
       dockerfile: .devcontainer/Dockerfile.toolbox
     volumes:
+      # CHANGE 2: Use a single dot "." (Mount CampaignStudio)
       - .:/workspaces/CampaignStudio:cached
     command: sleep infinity
     network_mode: service:db
