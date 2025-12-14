@@ -38,6 +38,10 @@ class CampaignPost(SQLModel, table=True):
     campaign_id: Optional[int] = Field(default=None, foreign_key="campaign.id")
     campaign: Optional["Campaign"] = Relationship(back_populates="posts")
 
+    # User Ownership
+    user_id: Optional[int] = Field(default=None, foreign_key="user.id")
+    user: Optional["User"] = Relationship(back_populates="posts")
+
 class Campaign(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     name: str
@@ -49,7 +53,12 @@ class Campaign(SQLModel, table=True):
     mode: Optional["Mode"] = Relationship(back_populates="campaigns")
     
     # Relationship to Posts
+    # Relationship to Posts
     posts: List["CampaignPost"] = Relationship(back_populates="campaign")
+
+    # User Ownership
+    user_id: Optional[int] = Field(default=None, foreign_key="user.id")
+    user: Optional["User"] = Relationship(back_populates="campaigns")
 
 class Platform(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -83,6 +92,10 @@ class User(SQLModel, table=True):
     is_active: bool = Field(default=True)
     is_superuser: bool = Field(default=False)
     created_at: datetime = Field(default_factory=datetime.utcnow)
+
+    # Relationships
+    campaigns: List["Campaign"] = Relationship(back_populates="user")
+    posts: List["CampaignPost"] = Relationship(back_populates="user")
 
 class Mode(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)

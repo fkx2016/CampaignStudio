@@ -732,6 +732,18 @@ Strict TypeScript is great, but it stops at the browser edge. If your Python bac
     *   **No Raw Dicts:** In Python, use `BaseModel`.
     *   **No `any`:** In TypeScript, use `z.infer`.
     *   **The Goal:** A continuous chain of custody for data integrity from the Database to the UI.
+
+    #### The "Gatekeeper Alliance" (Lint vs. Zod)
+    Do not confuse **Linting** with **Validation**.
+    *   **Lint (Static):** "Is the code written correctly?" (Catches typos, unused vars).
+    *   **Zod (Runtime):** "Is the data correct?" (Catches bad user input, wrong API types).
+    *   **Together:** They form the "Double Shield" of the CoCoding Protocol.
+
+    #### The Border Patrol Analogy (Zod vs. Pydantic)
+    Think of them as guards on opposite sides of a bridge:
+    *   **Zod (Browser Guard):** Stops bad data *before* it leaves the user's computer. Giving instant feedback ("Password too short!") without needing a server trip.
+    *   **Pydantic (Server Guard):** Stops bad data *before* it enters your database. Protecting you from hackers who bypass the frontend.
+    *   **The Rule:** You need both. Zod for UX, Pydantic for Security.
     
     *   **The Strictness Dividend (Examples of AI Guardrails):**
         1.  **The "Null" Trap:**

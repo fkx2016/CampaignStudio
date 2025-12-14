@@ -45,21 +45,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } else {
             setLoading(false);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const fetchUser = async (token: string) => {
         try {
-            const res = await fetch(`${API_BASE_URL}/users/me`, {
+            console.log("AuthContext: Checking user with token", token.substring(0, 10) + "...");
+
+            // Try primary path
+            let res = await fetch(`${API_BASE_URL}/auth/users/me`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
+
+            // If 404, try legacy path
+            if (res.status === 404) {
+                console.warn("AuthContext: /auth/users/me -> 404. Trying /users/me...");
+                res = await fetch(`${API_BASE_URL}/users/me`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+            }
+
             if (res.ok) {
                 const userData = await res.json();
+                console.log("AuthContext: User Verified!", userData);
                 setUser(userData);
             } else {
+                const text = await res.text();
+                console.error("AuthContext: Fetch Failed", res.status, text);
+                alert(`Login Failed: Server returned ${res.status}. Check console.`);
                 logout(); // Invalid token
             }
         } catch (err) {
-            console.error("Auth check failed", err);
+            console.error("AuthContext: Network Error", err);
+            // alert("Login Error: Network issue. Check console."); // Fail silently-ish to avoid panic loop
             logout();
         } finally {
             setLoading(false);

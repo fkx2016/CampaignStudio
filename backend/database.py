@@ -14,7 +14,7 @@ if "sqlite" in DATABASE_URL:
     engine = create_engine(DATABASE_URL, echo=True, connect_args=connect_args)
 else:
     # PostgreSQL (Supabase) doesn't need check_same_thread
-    engine = create_engine(DATABASE_URL, echo=True)
+    engine = create_engine(DATABASE_URL, echo=False)
 
 def create_db_and_tables():
     SQLModel.metadata.create_all(engine)
