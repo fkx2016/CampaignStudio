@@ -1,0 +1,116 @@
+
+> next-gen-app@0.1.0 lint
+> eslint --quiet
+
+
+/workspaces/CampaignStudio/next-gen-app/app/dashboard/page.tsx
+  394:21  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  396:24  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  396:83  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+
+/workspaces/CampaignStudio/next-gen-app/app/demo/page.tsx
+   53:19  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            @typescript-eslint/no-explicit-any
+   97:13  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/workspaces/CampaignStudio/next-gen-app/app/demo/page.tsx:97:13
+   95 |     useEffect(() => {
+   96 |         if (selectedPost) {
+>  97 |             setEditedTitle(selectedPost.title || "");
+      |             ^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+   98 |             setEditedHook(selectedPost.hook_text || "");
+   99 |             setEditedImageUrl(selectedPost.media_image_url || "");
+  100 |             setIsEditingMedia(false);  react-hooks/set-state-in-effect
+  113:33  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            @typescript-eslint/no-explicit-any
+
+/workspaces/CampaignStudio/next-gen-app/app/page.tsx
+  206:43  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  206:69  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+/workspaces/CampaignStudio/next-gen-app/app/pricing/page.tsx
+  77:142  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  77:152  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+
+/workspaces/CampaignStudio/next-gen-app/app/register/page.tsx
+  44:23  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/workspaces/CampaignStudio/next-gen-app/components/MusicPlayer.tsx
+   11:13  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+   24:30  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+   70:30  error  Error: Cannot access variable before it is declared
+
+`onPlayerReady` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+/workspaces/CampaignStudio/next-gen-app/components/MusicPlayer.tsx:70:30
+  68 |                 },
+  69 |                 events: {
+> 70 |                     onReady: onPlayerReady,
+     |                              ^^^^^^^^^^^^^ `onPlayerReady` accessed before it is declared
+  71 |                     onStateChange: onPlayerStateChange,
+  72 |                 },
+  73 |             });
+
+/workspaces/CampaignStudio/next-gen-app/components/MusicPlayer.tsx:127:5
+  125 |
+  126 |     // Player ready callback
+> 127 |     const onPlayerReady = (event: any) => {
+      |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 128 |         setPlayerReady(true);
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 129 |         event.target.setVolume(volume);
+      …
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 140 |         return () => clearInterval(interval);
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 141 |     };
+      | ^^^^^^^ `onPlayerReady` is declared here
+  142 |
+  143 |     // Player state change callback
+  144 |     const onPlayerStateChange = (event: any) => {                                                                                                                                                                                                                                                                                                                                                                                                                                   react-hooks/immutability
+   71:36  error  Error: Cannot access variable before it is declared
+
+`onPlayerStateChange` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+/workspaces/CampaignStudio/next-gen-app/components/MusicPlayer.tsx:71:36
+  69 |                 events: {
+  70 |                     onReady: onPlayerReady,
+> 71 |                     onStateChange: onPlayerStateChange,
+     |                                    ^^^^^^^^^^^^^^^^^^^ `onPlayerStateChange` accessed before it is declared
+  72 |                 },
+  73 |             });
+  74 |         };
+
+/workspaces/CampaignStudio/next-gen-app/components/MusicPlayer.tsx:144:5
+  142 |
+  143 |     // Player state change callback
+> 144 |     const onPlayerStateChange = (event: any) => {
+      |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 145 |         const state = event.data;
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 146 |         // YT.PlayerState: UNSTARTED (-1), ENDED (0), PLAYING (1), PAUSED (2), BUFFERING (3), CUED (5)
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 147 |         setIsPlaying(state === 1);
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 148 |
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 149 |         if (state === 0) { // Video ended
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 150 |             // Loop is handled by playerVars, but we can add custom logic here if needed
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 151 |         }
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 152 |     };
+      | ^^^^^^^ `onPlayerStateChange` is declared here
+  153 |
+  154 |     // Toggle play/pause
+  155 |     const togglePlayPause = () => {  react-hooks/immutability
+  127:35  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  144:41  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+
+✖ 17 problems (17 errors, 0 warnings)
+

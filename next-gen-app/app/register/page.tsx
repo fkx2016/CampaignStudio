@@ -41,7 +41,7 @@ export default function RegisterPage() {
             // Success! Redirect to login
             router.push("/login?registered=true");
 
-        } catch (err: any) {
+        } catch (err: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
             setError(err.message || "Something went wrong. Please try again.");
         } finally {
             setLoading(false);
@@ -125,7 +125,11 @@ export default function RegisterPage() {
                                 className="bg-slate-50 pr-10"
                                 placeholder="Create a strong password"
                                 value={password}
-                                onChange={(e) => setPassword(e.target.value)}
+                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                onChange={(e: any) => {
+                                    console.log(e);
+                                    setPassword(e.target.value);
+                                }}
                             />
                             <button
                                 type="button"

@@ -17,11 +17,6 @@ export default function Draggable({ children, initialPos = { x: 0, y: 0 }, class
     // We store the initial mouse position and initial item position at the start of drag
     const dragStartRef = useRef<{ mouseX: number; mouseY: number; itemX: number; itemY: number } | null>(null);
 
-    // Sync state if initialPos changes externally (optional, but good for resets)
-    useEffect(() => {
-        setPosition(initialPos);
-    }, [initialPos.x, initialPos.y]);
-
     const onMouseDown = (e: React.MouseEvent) => {
         if (e.button !== 0) return; // Only left click
         setIsDragging(true);

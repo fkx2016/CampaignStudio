@@ -169,6 +169,10 @@ export default function StudioPage() {
     const posts = allPosts.filter(p => p.campaign_id === currentCampaignId);
 
     const [currentIndex, setCurrentIndex] = useState(0);
+    // Safe derived index to prevent out-of-bounds without useEffect
+    const safeIndex = (posts.length > 0 && currentIndex >= posts.length) ? 0 : currentIndex;
+    const post = posts[safeIndex];
+
     const [showMusic, setShowMusic] = useState(false);
     const [isEditingMedia, setIsEditingMedia] = useState(false);
     const [isEditingCampaign, setIsEditingCampaign] = useState(false); // State for Campaign Edit Modal
@@ -208,40 +212,24 @@ export default function StudioPage() {
         fetchUser();
     }, []);
 
-    // Update Campaign Selection when Mode Changes
-    useEffect(() => {
-        // Find first campaign for this mode
-        const modeCampaigns = allCampaigns.filter(c => c.mode === currentMode);
+    const handleModeChange = (newMode: string) => {
+        setCurrentMode(newMode);
+        // Sync campaign selection immediately (replaces useEffect)
+        const modeCampaigns = allCampaigns.filter(c => c.mode === newMode);
         if (modeCampaigns.length > 0) {
             setCurrentCampaignId(modeCampaigns[0].id);
         } else {
             setCurrentCampaignId(0);
         }
-    }, [currentMode, allCampaigns]);
+    };
 
-    // Ensure Current Index is Valid when Posts Change
-    useEffect(() => {
-        if (posts.length > 0 && currentIndex >= posts.length) {
-            setCurrentIndex(0);
-        }
-    }, [posts.length, currentIndex]);
-
-    const post = posts[currentIndex]; // Safe derived value
     const activeCampaign = allCampaigns.find(c => c.id === currentCampaignId); // Get current campaign details
 
     // LOCAL STATE HANDLERS (with Auto-Save Buffer)
-    const [editedTitle, setEditedTitle] = useState("");
-    const [editedHook, setEditedHook] = useState("");
-    const [editedImageUrl, setEditedImageUrl] = useState("");
-
-    // Sync Local State from Post when Post Changes
-    useEffect(() => {
-        if (post) {
-            setEditedTitle(post.title || "");
-            setEditedHook(post.hook_text || "");
-            setEditedImageUrl(post.media_image_url || "");
-        }
-    }, [post]);
+    // Initialized directly from post data when component remounts (via key)
+    const [editedTitle, setEditedTitle] = useState(post?.title || "");
+    const [editedHook, setEditedHook] = useState(post?.hook_text || "");
+    const [editedImageUrl, setEditedImageUrl] = useState(post?.media_image_url || "");
 
     // HANDLERS
     const handleUpdatePost = (updates: Partial<CampaignPost>) => {
@@ -362,7 +350,7 @@ export default function StudioPage() {
 
                     <div className="flex flex-col gap-1">
                         <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-1">Select / Create Modes</label>
-                        <ModeSwitcher currentMode={currentMode} onModeChange={setCurrentMode} />
+                        <ModeSwitcher currentMode={currentMode} onModeChange={handleModeChange} />
                     </div>
 
                     {/* CAMPAIGN SELECTOR */}
@@ -436,13 +424,13 @@ export default function StudioPage() {
                                     onClick={() => setCurrentIndex(idx)}
                                     className={cn(
                                         "flex items-center gap-2 p-2 rounded border cursor-pointer transition-all group",
-                                        idx === currentIndex
+                                        idx === safeIndex
                                             ? "bg-white border-blue-400 shadow-sm ring-1 ring-blue-400/20"
                                             : "bg-white border-slate-200 hover:border-blue-300 hover:bg-blue-50/30"
                                     )}>
                                     <div className={cn("w-2 h-2 rounded-full flex-shrink-0", p.status === "Posted" ? "bg-green-500" : "bg-slate-300")} />
                                     <div className="flex-1 min-w-0">
-                                        <h4 className={cn("font-bold text-xs truncate", idx === currentIndex ? "text-slate-900" : "text-slate-700")}>
+                                        <h4 className={cn("font-bold text-xs truncate", idx === safeIndex ? "text-slate-900" : "text-slate-700")}>
                                             {p.title || "Untitled"}
                                         </h4>
                                         <div className="flex items-center gap-2 text-[10px] text-slate-400 font-mono">
@@ -450,7 +438,7 @@ export default function StudioPage() {
                                             {p.media_image_url && <span className="text-blue-500 flex items-center gap-0.5">● Media</span>}
                                         </div>
                                     </div>
-                                    {idx === currentIndex && <div className="w-1 h-6 bg-blue-500 rounded-full mr-[-4px]"></div>}
+                                    {idx === safeIndex && <div className="w-1 h-6 bg-blue-500 rounded-full mr-[-4px]"></div>}
                                 </div>
                             ))}
                         </div>
@@ -472,7 +460,7 @@ export default function StudioPage() {
 
                     {post ? (
                         <>
-                            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-6 relative hover:shadow-md transition-shadow">
+                            <div key={post.id} className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-6 relative hover:shadow-md transition-shadow">
                                 <div className="space-y-2">
                                     <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Subject / Title</label>
                                     <div className="flex items-center gap-2">
@@ -695,6 +683,7 @@ export default function StudioPage() {
 
             {/* CAMPAIGN EDIT MODAL */}
             <CampaignEditModal
+                key={editingCampaignData?.id ?? "new"}
                 open={isEditingCampaign}
                 onOpenChange={setIsEditingCampaign}
                 campaign={editingCampaignData}
