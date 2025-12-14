@@ -8,10 +8,12 @@ import { X, Minimize2, Maximize2, Music, Play, Pause, Volume2, VolumeX, SkipForw
 // Declare YouTube IFrame API types
 declare global {
     interface Window {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         YT: any;
         onYouTubeIframeAPIReady: () => void;
     }
 }
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 
 export default function MusicPlayer({ onClose }: { onClose: () => void }) {
     const [isMinimized, setIsMinimized] = useState(false);
@@ -21,43 +23,90 @@ export default function MusicPlayer({ onClose }: { onClose: () => void }) {
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
     const [videoId, setVideoId] = useState("jfKfPfyJRdk"); // Default lofi hip hop
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const playerRef = useRef<any>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const [mounted, setMounted] = useState(false);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [playerReady, setPlayerReady] = useState(false);
 
     // Extract video ID from URL
     const getVideoId = (url: string): string => {
         if (!url) return "jfKfPfyJRdk";
-
-        // Already just an ID
         if (url.match(/^[a-zA-Z0-9_-]{11}$/)) return url;
-
-        // Extract from various YouTube URL formats
         const patterns = [
             /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/,
             /^([a-zA-Z0-9_-]{11})$/
         ];
-
         for (const pattern of patterns) {
             const match = url.match(pattern);
             if (match && match[1]) return match[1];
         }
-
         return "jfKfPfyJRdk";
     };
 
     // Load YouTube IFrame API
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setMounted(true);
+
+        // Player ready callback
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const onPlayerReady = (event: any) => {
+            setPlayerReady(true);
+            event.target.setVolume(volume);
+            setDuration(event.target.getDuration());
+            setIsPlaying(true);
+
+            // Update progress every second
+            const interval = setInterval(() => {
+                if (playerRef.current && playerRef.current.getCurrentTime) {
+                    setCurrentTime(playerRef.current.getCurrentTime());
+                }
+            }, 1000);
+
+            return () => clearInterval(interval);
+        };
+
+        // Player state change callback
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const onPlayerStateChange = (event: any) => {
+            const state = event.data;
+            // YT.PlayerState: UNSTARTED (-1), ENDED (0), PLAYING (1), PAUSED (2), BUFFERING (3), CUED (5)
+            setIsPlaying(state === 1);
+            if (state === 0) { // Video ended
+                // Loop is handled by playerVars
+            }
+        };
+
+        const initPlayer = () => {
+            if (!containerRef.current || playerRef.current) return;
+
+            playerRef.current = new window.YT.Player(containerRef.current, {
+                videoId: videoId,
+                width: '100%',
+                height: '200',
+                playerVars: {
+                    autoplay: 1,
+                    controls: 1,
+                    modestbranding: 1,
+                    rel: 0,
+                    loop: 1,
+                    playlist: videoId, // Required for looping
+                },
+                events: {
+                    onReady: onPlayerReady,
+                    onStateChange: onPlayerStateChange,
+                },
+            });
+        };
 
         // Load video ID from settings
         fetch(`${API_BASE_URL}/api/settings`)
             .then(res => res.json())
             .then(data => {
                 if (data.default_music_url) {
-                    const id = getVideoId(data.default_music_url);
-                    setVideoId(id);
+                    setVideoId(getVideoId(data.default_music_url));
                 }
             })
             .catch(err => console.error("Failed to fetch music settings", err));
@@ -73,21 +122,18 @@ export default function MusicPlayer({ onClose }: { onClose: () => void }) {
         // Wait for API to be ready and initialize player
         const checkAndInit = () => {
             if (window.YT && window.YT.Player && containerRef.current && !playerRef.current) {
-                initializePlayer();
+                initPlayer();
             } else if (!playerRef.current) {
-                // Retry after a short delay
                 setTimeout(checkAndInit, 100);
             }
         };
 
-        // Set up the callback for when API is ready
         const originalCallback = window.onYouTubeIframeAPIReady;
         window.onYouTubeIframeAPIReady = () => {
             if (originalCallback) originalCallback();
             checkAndInit();
         };
 
-        // Start checking if API is already loaded
         checkAndInit();
 
         return () => {
@@ -99,63 +145,12 @@ export default function MusicPlayer({ onClose }: { onClose: () => void }) {
                 }
             }
         };
-    }, []);
+    }, []); // eslint-disable-next-line
 
-    // Initialize YouTube player
-    const initializePlayer = () => {
-        if (!containerRef.current || playerRef.current) return;
-
-        playerRef.current = new window.YT.Player(containerRef.current, {
-            videoId: videoId,
-            width: '100%',
-            height: '200',
-            playerVars: {
-                autoplay: 1,
-                controls: 1,
-                modestbranding: 1,
-                rel: 0,
-                loop: 1,
-                playlist: videoId, // Required for looping
-            },
-            events: {
-                onReady: onPlayerReady,
-                onStateChange: onPlayerStateChange,
-            },
-        });
-    };
-
-    // Player ready callback
-    const onPlayerReady = (event: any) => {
-        setPlayerReady(true);
-        event.target.setVolume(volume);
-        setDuration(event.target.getDuration());
-        setIsPlaying(true);
-
-        // Update progress every second
-        const interval = setInterval(() => {
-            if (playerRef.current && playerRef.current.getCurrentTime) {
-                setCurrentTime(playerRef.current.getCurrentTime());
-            }
-        }, 1000);
-
-        return () => clearInterval(interval);
-    };
-
-    // Player state change callback
-    const onPlayerStateChange = (event: any) => {
-        const state = event.data;
-        // YT.PlayerState: UNSTARTED (-1), ENDED (0), PLAYING (1), PAUSED (2), BUFFERING (3), CUED (5)
-        setIsPlaying(state === 1);
-
-        if (state === 0) { // Video ended
-            // Loop is handled by playerVars, but we can add custom logic here if needed
-        }
-    };
 
     // Toggle play/pause
     const togglePlayPause = () => {
         if (!playerRef.current) return;
-
         if (isPlaying) {
             playerRef.current.pauseVideo();
         } else {
@@ -166,7 +161,6 @@ export default function MusicPlayer({ onClose }: { onClose: () => void }) {
     // Toggle mute
     const toggleMute = () => {
         if (!playerRef.current) return;
-
         if (isMuted) {
             playerRef.current.unMute();
             setIsMuted(false);
@@ -180,7 +174,6 @@ export default function MusicPlayer({ onClose }: { onClose: () => void }) {
     const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const newVolume = parseInt(e.target.value);
         setVolume(newVolume);
-
         if (playerRef.current) {
             playerRef.current.setVolume(newVolume);
             if (newVolume > 0 && isMuted) {

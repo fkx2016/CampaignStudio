@@ -12,12 +12,8 @@ interface CampaignEditModalProps {
 }
 
 export default function CampaignEditModal({ campaign, open, onOpenChange, onSave }: CampaignEditModalProps) {
-    const [title, setTitle] = useState("");
-
-    // Sync state when campaign opens
-    useEffect(() => {
-        if (campaign) setTitle(campaign.title);
-    }, [campaign]);
+    // Initialize state from props. Parent must key this component to reset it.
+    const [title, setTitle] = useState(campaign?.title || "");
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();

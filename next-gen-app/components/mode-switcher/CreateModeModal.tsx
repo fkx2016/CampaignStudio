@@ -27,7 +27,7 @@ export default function CreateModeModal({ mode, open, onOpenChange, onSave }: Mo
     // Actually, React best practice for "reset on open" with modals is often to rely on the parent conditionally rendering perfectly or using useEffect.
     // Let's add the useEffect to sync state.
 
-    /* eslint-disable react-hooks/exhaustive-deps */
+     
     // We suppress exhaustiveness because we only want to reset when 'open' becomes true or 'mode' changes
 
     if (!open) return null;

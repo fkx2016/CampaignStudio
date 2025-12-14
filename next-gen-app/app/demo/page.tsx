@@ -50,6 +50,7 @@ const MOCK_PLATFORMS = [
     { name: "LexisNexis", slug: "lexis", domain: "legal", base_url: "https://www.lexisnexis.com/", intent_url: "", icon: "Scale", description: "Legal Research" },
 ];
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const MOCK_POSTS: any[] = [
     // ACCOUNTING
     { id: 101, title: "Q3 Vendor Payments", hook_text: "Summary of Q3 vendor payments for review. Invoice #4402 needs approval.", domain: "accounting", status: "Pending", media_image_url: "" },
@@ -83,23 +84,17 @@ export default function DemoDashboard() {
     const relevantPlatforms = MOCK_PLATFORMS.filter(p => p.domain === activeDomain);
 
     // EDITOR STATE
-    const [editedTitle, setEditedTitle] = useState("");
-    const [editedHook, setEditedHook] = useState("");
-    const [editedImageUrl, setEditedImageUrl] = useState("");
+    // EDITOR STATE - Initialized via key reset
+    const [editedTitle, setEditedTitle] = useState(selectedPost?.title || "");
+    const [editedHook, setEditedHook] = useState(selectedPost?.hook_text || "");
+    const [editedImageUrl, setEditedImageUrl] = useState(selectedPost?.media_image_url || "");
     const [isEditingMedia, setIsEditingMedia] = useState(false);
 
     // Fake User
     const user = { full_name: "Visitor" };
 
-    // Sync Editor with Selected Post
-    useEffect(() => {
-        if (selectedPost) {
-            setEditedTitle(selectedPost.title || "");
-            setEditedHook(selectedPost.hook_text || "");
-            setEditedImageUrl(selectedPost.media_image_url || "");
-            setIsEditingMedia(false);
-        }
-    }, [selectedPostId, selectedPost]);
+    // Sync Editor with Selected Post - REMOVED (Handled by key reset)
+
 
     // HANDLERS
     const toggleDomain = (domainId: string) => {
@@ -109,7 +104,7 @@ export default function DemoDashboard() {
             setExpandedDomains([...expandedDomains, domainId]);
         }
     };
-
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const handleLaunch = (plat: any) => {
         if (plat.intent_url) {
             const encodedText = encodeURIComponent(editedHook);
@@ -235,7 +230,7 @@ export default function DemoDashboard() {
 
                     <div className="p-8 max-w-3xl mx-auto w-full flex-1">
                         {selectedPost ? (
-                            <div className="space-y-8">
+                            <div key={selectedPost.id} className="space-y-8">
                                 {/* Title Input */}
                                 <div className="space-y-2">
                                     <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Subject / Title</label>

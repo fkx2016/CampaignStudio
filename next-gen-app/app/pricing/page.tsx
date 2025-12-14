@@ -40,6 +40,9 @@ export default function PricingPage() {
                     <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 flex flex-col gap-6 relative opacity-75 hover:opacity-100 transition-opacity">
                         <div>
                             <h3 className="text-lg font-bold text-slate-500 uppercase tracking-widest">Free</h3>
+                            <p className="text-gray-600 mb-6">
+                                &quot;The ROI we&apos;ve seen from using CampaignStudio is invalid. We&apos;re saving 20 hours a week.&quot;
+                            </p>
                             <div className="mt-2 flex items-baseline gap-1">
                                 <span className="text-4xl font-bold text-slate-900">$0</span>
                                 <span className="text-slate-500">/mo</span>
@@ -74,7 +77,7 @@ export default function PricingPage() {
                             <li className="flex items-center gap-3 text-slate-900 font-medium"><Check className="w-5 h-5 text-orange-500" /> GPT-4 & Best Models</li>
                             <li className="flex items-center gap-3 text-slate-900 font-medium"><Check className="w-5 h-5 text-orange-500" /> All 30+ Platforms</li>
                             <li className="flex items-center gap-3 text-slate-900 font-medium"><Check className="w-5 h-5 text-orange-500" /> Ops & Finance Integrations</li>
-                            <li className="flex items-center gap-3 text-slate-900 font-medium"><Check className="w-5 h-5 text-orange-500" /> "Save Work" Recovery</li>
+                            <li className="flex items-center gap-3 text-slate-900 font-medium"><Check className="w-5 h-5 text-orange-500" /> &quot;Save Work&quot; Recovery</li>
                         </ul>
                         <Button className="w-full h-12 text-lg bg-gradient-to-r from-amber-400 to-orange-600 hover:from-amber-500 hover:to-orange-700 text-white font-bold shadow-lg">
                             Start Free Trial
